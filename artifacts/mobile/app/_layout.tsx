@@ -15,6 +15,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider } from '@/context/AuthContext';
 import { DataProvider } from '@/context/DataContext';
 import { ThemeProvider } from '@/context/ThemeContext';
+import { AgentsProvider } from '@/context/AgentsContext';
+import { ActivityProvider } from '@/context/ActivityContext';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -51,9 +53,13 @@ export default function RootLayout() {
           <QueryClientProvider client={queryClient}>
             <AuthProvider>
               <DataProvider>
-                <GestureHandlerRootView style={{ flex: 1 }}>
-                  <RootLayoutNav />
-                </GestureHandlerRootView>
+                <AgentsProvider>
+                  <ActivityProvider>
+                    <GestureHandlerRootView style={{ flex: 1 }}>
+                      <RootLayoutNav />
+                    </GestureHandlerRootView>
+                  </ActivityProvider>
+                </AgentsProvider>
               </DataProvider>
             </AuthProvider>
           </QueryClientProvider>

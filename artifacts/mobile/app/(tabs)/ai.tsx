@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import {
+  Dimensions,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -15,7 +16,10 @@ import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
 import { useData, AIMessage } from '@/context/DataContext';
+import { useAgents, getAgentMeta, AgentType } from '@/context/AgentsContext';
 import * as Haptics from 'expo-haptics';
+
+const { width } = Dimensions.get('window');
 
 const SUGGESTIONS = [
   { icon: 'code', text: 'Explain async/await in JavaScript' },
@@ -27,31 +31,24 @@ const SUGGESTIONS = [
 
 function getAIResponse(msg: string): string {
   const m = msg.toLowerCase();
-  if (m.includes('async') || m.includes('await') || m.includes('promise')) {
-    return "**async/await** is syntactic sugar over Promises that makes asynchronous code look synchronous:\n\n```javascript\n// Old way with Promises\nfetch('/api/users')\n  .then(res => res.json())\n  .then(data => console.log(data))\n  .catch(err => console.error(err));\n\n// Modern async/await\nasync function getUsers() {\n  try {\n    const res = await fetch('/api/users');\n    const data = await res.json();\n    console.log(data);\n  } catch (err) {\n    console.error(err);\n  }\n}\n```\n\nKey points:\n• `async` marks a function as asynchronous\n• `await` pauses execution until the Promise resolves\n• Always use try/catch for error handling\n• `await` can only be used inside `async` functions";
-  }
-  if (m.includes('rest') || m.includes('api') || m.includes('generate') || m.includes('endpoint')) {
-    return "Here's a clean authentication REST API:\n\n```typescript\nimport express from 'express';\nimport bcrypt from 'bcrypt';\nimport jwt from 'jsonwebtoken';\n\nconst router = express.Router();\n\n// POST /api/auth/register\nrouter.post('/register', async (req, res) => {\n  const { email, password, name } = req.body;\n  const hashed = await bcrypt.hash(password, 12);\n  const user = await User.create({ email, password: hashed, name });\n  const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!);\n  res.status(201).json({ user, token });\n});\n\n// POST /api/auth/login\nrouter.post('/login', async (req, res) => {\n  const { email, password } = req.body;\n  const user = await User.findByEmail(email);\n  if (!user || !await bcrypt.compare(password, user.password)) {\n    return res.status(401).json({ error: 'Invalid credentials' });\n  }\n  const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!);\n  res.json({ user, token });\n});\n```\n\nThis includes secure password hashing and JWT token generation.";
-  }
-  if (m.includes('optimize') || m.includes('performance') || m.includes('react')) {
-    return "**React Performance Optimization** — Top strategies:\n\n**1. Memoization**\n```jsx\n// Prevent unnecessary re-renders\nconst MyComponent = React.memo(({ data }) => {\n  return <View>...</View>;\n});\n\n// Memoize expensive calculations\nconst filtered = useMemo(\n  () => data.filter(item => item.active),\n  [data]\n);\n```\n\n**2. Code Splitting**\n```jsx\nconst HeavyChart = React.lazy(() => import('./HeavyChart'));\n// Wrap in <Suspense fallback={<Spinner />}>\n```\n\n**3. Avoid inline functions in JSX**\n```jsx\n// Bad — creates new function on every render\nonPress={() => handlePress(item.id)}\n\n// Good — stable reference\nconst handlePress = useCallback((id) => {...}, []);\n```\n\n**4. Virtual Lists** — Use FlashList instead of ScrollView for large datasets";
-  }
-  if (m.includes('sql') || m.includes('database') || m.includes('duplicate') || m.includes('query')) {
-    return "**SQL Query — Find Duplicates:**\n\n```sql\n-- Method 1: Using GROUP BY\nSELECT email, COUNT(*) as count\nFROM users\nGROUP BY email\nHAVING COUNT(*) > 1\nORDER BY count DESC;\n\n-- Method 2: Show full duplicate rows\nSELECT *\nFROM users u1\nWHERE EXISTS (\n  SELECT 1 FROM users u2\n  WHERE u2.email = u1.email\n  AND u2.id != u1.id\n)\nORDER BY email;\n\n-- Method 3: Delete duplicates (keep newest)\nDELETE FROM users\nWHERE id NOT IN (\n  SELECT MAX(id)\n  FROM users\n  GROUP BY email\n);\n```\n\nAlways backup your data before running DELETE operations!";
-  }
-  if (m.includes('git') || m.includes('rebase') || m.includes('merge')) {
-    return "**Git Rebase vs Merge:**\n\n**Merge** — Creates a merge commit, preserves history\n```bash\ngit checkout main\ngit merge feature-branch\n# Creates: main ← merge commit ← (feature + main)\n```\n\n**Rebase** — Rewrites commits onto target, clean linear history\n```bash\ngit checkout feature-branch\ngit rebase main\n# Replays your commits on top of main\n```\n\n**When to use each:**\n• **Merge** for public/shared branches (safe, non-destructive)\n• **Rebase** for local cleanup before PR (cleaner history)\n• **Never rebase** commits that others have pulled from\n\n**Interactive rebase** to squash/edit commits:\n```bash\ngit rebase -i HEAD~3\n```";
-  }
-  if (m.includes('hello') || m.includes('hi ') || m.includes('hey')) {
-    return "Hey! 👋 I'm DevOS AI — your intelligent coding companion. I can help you with:\n\n• **Code generation** — APIs, components, utilities\n• **Debugging** — Find and fix errors\n• **Code explanation** — Understand complex code\n• **Architecture** — Design patterns, best practices\n• **SQL & Database** — Queries and optimization\n• **Performance** — Profiling and optimization tips\n\nWhat are you working on today?";
-  }
-  return "Great question! Let me help you with that.\n\nBased on what you're asking, here are the key things to know:\n\n**1. Understand the fundamentals** — before jumping to solutions, make sure you grasp the core concepts involved\n\n**2. Start simple** — implement the minimal version first, then add complexity\n\n**3. Consider edge cases** — what happens with empty data, errors, or unexpected inputs?\n\n**4. Test as you go** — write tests alongside your code, not after\n\nCould you share more details about your specific use case? I can give you more targeted advice with more context.";
+  if (m.includes('async') || m.includes('await') || m.includes('promise'))
+    return "**async/await** is syntactic sugar over Promises:\n\n```javascript\nasync function getUsers() {\n  const res = await fetch('/api/users');\n  const data = await res.json();\n  return data;\n}\n```\nKey: `async` marks async function, `await` pauses until Promise resolves. Always use try/catch.";
+  if (m.includes('rest') || m.includes('api') || m.includes('generate') || m.includes('endpoint'))
+    return "Here's a clean auth REST API:\n\n```typescript\nrouter.post('/register', async (req, res) => {\n  const hashed = await bcrypt.hash(req.body.password, 12);\n  const user = await User.create({ ...req.body, password: hashed });\n  const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!);\n  res.status(201).json({ user, token });\n});\n```";
+  if (m.includes('optimize') || m.includes('performance') || m.includes('react'))
+    return "**React Performance** — Top strategies:\n• `React.memo` to prevent unnecessary re-renders\n• `useMemo`/`useCallback` for stable references\n• `React.lazy` for code splitting\n• FlashList/FlatList instead of ScrollView\n• Avoid inline functions in JSX";
+  if (m.includes('sql') || m.includes('database') || m.includes('duplicate') || m.includes('query'))
+    return "**Find duplicates SQL:**\n\n```sql\nSELECT email, COUNT(*) FROM users\nGROUP BY email HAVING COUNT(*) > 1;\n```\nAlways backup before DELETE operations.";
+  if (m.includes('git') || m.includes('rebase') || m.includes('merge'))
+    return "**Git Rebase vs Merge:**\n• **Merge** — safe for shared branches, creates merge commit\n• **Rebase** — clean linear history, rewrites commits\n• Use merge for public branches, rebase for local cleanup\n• Never rebase commits others have pulled";
+  if (m.includes('hello') || m.includes('hi ') || m.includes('hey'))
+    return "Hey! 👋 I'm DevOS AI. I can help with code generation, debugging, architecture, SQL, performance, and more. What are you working on?";
+  return "Great question! Let me help. Could you share more details about your specific use case? I can give targeted advice with more context.";
 }
 
 function MessageBubble({ msg }: { msg: AIMessage }) {
   const colors = useColors();
   const isUser = msg.role === 'user';
-
   return (
     <Animated.View entering={FadeInUp.duration(280)} style={[styles.bubbleRow, isUser ? styles.bubbleRowRight : styles.bubbleRowLeft]}>
       {!isUser && (
@@ -59,15 +56,11 @@ function MessageBubble({ msg }: { msg: AIMessage }) {
           <Feather name="cpu" size={13} color="#fff" />
         </LinearGradient>
       )}
-      <View style={[
-        styles.bubble,
-        isUser
-          ? { backgroundColor: colors.primary }
-          : { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1 },
+      <View style={[styles.bubble, isUser
+        ? { backgroundColor: colors.primary }
+        : { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1 },
       ]}>
-        <Text style={[styles.bubbleText, { color: isUser ? '#fff' : colors.foreground }]}>
-          {msg.content}
-        </Text>
+        <Text style={[styles.bubbleText, { color: isUser ? '#fff' : colors.foreground }]}>{msg.content}</Text>
         <Text style={[styles.bubbleTime, { color: isUser ? '#ffffff55' : colors.mutedForeground }]}>
           {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </Text>
@@ -76,12 +69,34 @@ function MessageBubble({ msg }: { msg: AIMessage }) {
   );
 }
 
+function AgentCard({ type, status, onPress }: { type: AgentType; status: string; onPress: () => void }) {
+  const colors = useColors();
+  const meta = getAgentMeta(type);
+  return (
+    <Pressable
+      onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); onPress(); }}
+      style={({ pressed }) => [styles.agentCard, { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.8 : 1 }]}
+    >
+      <View style={[styles.agentIcon, { backgroundColor: meta.color + '22' }]}>
+        <Feather name={meta.icon as any} size={16} color={meta.color} />
+      </View>
+      <Text style={[styles.agentName, { color: colors.foreground }]} numberOfLines={1}>
+        {type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+      </Text>
+      <View style={[styles.statusDot, { backgroundColor: status === 'working' ? '#F59E0B' : status === 'completed' ? '#22C55E' : '#636375' }]} />
+    </Pressable>
+  );
+}
+
 export default function AIScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { aiMessages, addAIMessage, clearAIMessages } = useData();
+  const { agents, assignTask, createDefaultAgents } = useAgents();
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
+  const [view, setView] = useState<'chat' | 'agents'>('chat');
+  const [selectedAgent, setSelectedAgent] = useState<AgentType | null>(null);
   const flatRef = useRef<FlatList>(null);
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
   const botPad = Platform.OS === 'web' ? 34 : insets.bottom;
@@ -104,116 +119,143 @@ export default function AIScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      {/* Header */}
       <LinearGradient colors={['#08081A', '#0F0F28']} style={[styles.header, { paddingTop: topPad + 14 }]}>
         <View style={styles.headerLeft}>
           <LinearGradient colors={[colors.primary, colors.accent]} style={styles.headerAvatar} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
             <Feather name="cpu" size={18} color="#fff" />
           </LinearGradient>
           <View>
-            <Text style={styles.headerTitle}>DevOS AI</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-              <View style={[styles.onlineDot, { backgroundColor: typing ? colors.warning : colors.success }]} />
-              <Text style={[styles.headerStatus, { color: typing ? colors.warning : colors.success }]}>
-                {typing ? 'Thinking...' : 'Online'}
-              </Text>
-            </View>
+            <Text style={styles.headerTitle}>{view === 'agents' ? 'AI Agents' : 'DevOS AI'}</Text>
+            <Text style={[styles.headerStatus, { color: colors.mutedForeground }]}>
+              {view === 'agents' ? `${agents.length} agents ready` : typing ? 'Thinking...' : 'Online'}
+            </Text>
           </View>
         </View>
-        {!isEmpty && (
-          <Pressable onPress={clearAIMessages} style={[styles.clearBtn, { backgroundColor: '#ffffff10', borderColor: '#ffffff15' }]}>
-            <Feather name="trash-2" size={15} color="#ffffff88" />
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <Pressable
+            onPress={() => setView(view === 'chat' ? 'agents' : 'chat')}
+            style={[styles.clearBtn, { backgroundColor: view === 'agents' ? colors.primary + '33' : '#ffffff10', borderColor: '#ffffff15' }]}
+          >
+            <Feather name={view === 'chat' ? 'grid' : 'message-square'} size={15} color={view === 'agents' ? colors.primary : '#ffffff88'} />
           </Pressable>
-        )}
+          {view === 'chat' && !isEmpty && (
+            <Pressable onPress={clearAIMessages} style={[styles.clearBtn, { backgroundColor: '#ffffff10', borderColor: '#ffffff15' }]}>
+              <Feather name="trash-2" size={15} color="#ffffff88" />
+            </Pressable>
+          )}
+        </View>
       </LinearGradient>
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-        keyboardVerticalOffset={0}
-      >
-        {isEmpty ? (
-          <View style={styles.emptyWrap}>
-            {/* Hero */}
-            <LinearGradient colors={['#6366F1', '#8B5CF6']} style={styles.emptyHero} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-              <Feather name="cpu" size={44} color="#fff" />
-            </LinearGradient>
-            <Text style={[styles.emptyTitle, { color: colors.foreground }]}>AI Developer Assistant</Text>
-            <Text style={[styles.emptySub, { color: colors.mutedForeground }]}>
-              Ask me anything about code, architecture, debugging, or best practices.
-            </Text>
-
-            <View style={styles.suggestions}>
-              {SUGGESTIONS.map((s, i) => (
-                <Animated.View key={i} entering={FadeInDown.delay(i * 60).duration(400)}>
-                  <Pressable
-                    onPress={() => send(s.text)}
-                    style={({ pressed }) => [styles.suggChip, { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.7 : 1 }]}
-                  >
-                    <View style={[styles.suggIconBox, { backgroundColor: colors.primary + '22' }]}>
-                      <Feather name={s.icon as any} size={14} color={colors.primary} />
-                    </View>
-                    <Text style={[styles.suggText, { color: colors.foreground }]}>{s.text}</Text>
-                    <Feather name="arrow-up-right" size={14} color={colors.mutedForeground} />
-                  </Pressable>
+      {view === 'agents' ? (
+        <View style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}>
+          {agents.length === 0 ? (
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+              <Feather name="cpu" size={48} color={colors.mutedForeground} />
+              <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No agents yet</Text>
+              <Text style={[styles.emptySub, { color: colors.mutedForeground }]}>Create your AI team to get started</Text>
+              <Pressable
+                onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); createDefaultAgents(); }}
+                style={({ pressed }) => [{ backgroundColor: colors.primary, paddingHorizontal: 24, paddingVertical: 14, borderRadius: 14, opacity: pressed ? 0.8 : 1 }]}
+              >
+                <Text style={{ color: '#fff', fontFamily: 'Inter_600SemiBold', fontSize: 15 }}>Create Default Agents</Text>
+              </Pressable>
+            </View>
+          ) : (
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'center' }}>
+              {agents.map((agent, i) => (
+                <Animated.View key={agent.id} entering={FadeInDown.delay(i * 40).duration(300)} style={{ width: (width - 52) / 3 }}>
+                  <AgentCard
+                    type={agent.type}
+                    status={agent.status}
+                    onPress={async () => {
+                      setSelectedAgent(agent.type);
+                      await assignTask(agent.id, input || `Perform ${agent.type.replace('_', ' ')} analysis`);
+                      setView('chat');
+                    }}
+                  />
                 </Animated.View>
               ))}
             </View>
-          </View>
-        ) : (
-          <FlatList
-            ref={flatRef}
-            data={aiMessages}
-            keyExtractor={item => item.id}
-            renderItem={({ item }) => <MessageBubble msg={item} />}
-            contentContainerStyle={[styles.msgList, { paddingBottom: 16 }]}
-            showsVerticalScrollIndicator={false}
-            onContentSizeChange={() => flatRef.current?.scrollToEnd({ animated: false })}
-            ListFooterComponent={typing ? (
-              <View style={styles.typingRow}>
-                <LinearGradient colors={[colors.primary, colors.accent]} style={styles.aiAvatar} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-                  <Feather name="cpu" size={13} color="#fff" />
-                </LinearGradient>
-                <View style={[styles.typingBubble, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                  <View style={styles.typingDots}>
-                    {[0, 1, 2].map(i => (
-                      <View key={i} style={[styles.typingDot, { backgroundColor: colors.primary }]} />
-                    ))}
+          )}
+          <Text style={[styles.sectionLabel, { color: colors.mutedForeground, marginTop: 20 }]}>
+            Tap an agent to assign a task, or switch to chat mode
+          </Text>
+        </View>
+      ) : (
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }} keyboardVerticalOffset={0}>
+          {isEmpty ? (
+            <View style={styles.emptyWrap}>
+              <LinearGradient colors={['#6366F1', '#8B5CF6']} style={styles.emptyHero} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+                <Feather name="cpu" size={44} color="#fff" />
+              </LinearGradient>
+              <Text style={[styles.emptyTitle, { color: colors.foreground }]}>AI Developer Assistant</Text>
+              <Text style={[styles.emptySub, { color: colors.mutedForeground }]}>
+                Ask me anything about code, architecture, debugging, or best practices.
+              </Text>
+              <View style={styles.suggestions}>
+                {SUGGESTIONS.map((s, i) => (
+                  <Animated.View key={i} entering={FadeInDown.delay(i * 60).duration(400)}>
+                    <Pressable
+                      onPress={() => send(s.text)}
+                      style={({ pressed }) => [styles.suggChip, { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.7 : 1 }]}
+                    >
+                      <View style={[styles.suggIconBox, { backgroundColor: colors.primary + '22' }]}>
+                        <Feather name={s.icon as any} size={14} color={colors.primary} />
+                      </View>
+                      <Text style={[styles.suggText, { color: colors.foreground }]}>{s.text}</Text>
+                      <Feather name="arrow-up-right" size={14} color={colors.mutedForeground} />
+                    </Pressable>
+                  </Animated.View>
+                ))}
+              </View>
+            </View>
+          ) : (
+            <FlatList
+              ref={flatRef}
+              data={aiMessages}
+              keyExtractor={item => item.id}
+              renderItem={({ item }) => <MessageBubble msg={item} />}
+              contentContainerStyle={[styles.msgList, { paddingBottom: 16 }]}
+              showsVerticalScrollIndicator={false}
+              onContentSizeChange={() => flatRef.current?.scrollToEnd({ animated: false })}
+              ListFooterComponent={typing ? (
+                <View style={styles.typingRow}>
+                  <LinearGradient colors={[colors.primary, colors.accent]} style={styles.aiAvatar} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+                    <Feather name="cpu" size={13} color="#fff" />
+                  </LinearGradient>
+                  <View style={[styles.typingBubble, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                    <View style={styles.typingDots}>
+                      {[0, 1, 2].map(i => (<View key={i} style={[styles.typingDot, { backgroundColor: colors.primary }]} />))}
+                    </View>
                   </View>
                 </View>
-              </View>
-            ) : null}
-          />
-        )}
-
-        {/* Input bar */}
-        <View style={[styles.inputBar, { borderTopColor: colors.border, paddingBottom: botPad + 10, backgroundColor: colors.background }]}>
-          <View style={[styles.inputRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <TextInput
-              style={[styles.textInput, { color: colors.foreground }]}
-              value={input}
-              onChangeText={setInput}
-              placeholder="Ask anything..."
-              placeholderTextColor={colors.mutedForeground}
-              multiline
-              maxLength={2000}
-              returnKeyType="send"
-              onSubmitEditing={({ nativeEvent }) => send(nativeEvent.text)}
-              blurOnSubmit={false}
+              ) : null}
             />
-            <Pressable
-              onPress={() => send(input)}
-              disabled={!input.trim() || typing}
-              style={({ pressed }) => [
-                styles.sendBtn,
-                { backgroundColor: input.trim() && !typing ? colors.primary : colors.muted, opacity: pressed ? 0.8 : 1 }
-              ]}
-            >
-              <Feather name="send" size={15} color={input.trim() && !typing ? '#fff' : colors.mutedForeground} />
-            </Pressable>
+          )}
+          <View style={[styles.inputBar, { borderTopColor: colors.border, paddingBottom: botPad + 10, backgroundColor: colors.background }]}>
+            <View style={[styles.inputRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <TextInput
+                style={[styles.textInput, { color: colors.foreground }]}
+                value={input}
+                onChangeText={setInput}
+                placeholder="Ask anything..."
+                placeholderTextColor={colors.mutedForeground}
+                multiline maxLength={2000}
+                returnKeyType="send"
+                onSubmitEditing={({ nativeEvent }) => send(nativeEvent.text)}
+                blurOnSubmit={false}
+              />
+              <Pressable
+                onPress={() => send(input)}
+                disabled={!input.trim() || typing}
+                style={({ pressed }) => [styles.sendBtn, { backgroundColor: input.trim() && !typing ? colors.primary : colors.muted, opacity: pressed ? 0.8 : 1 }]}
+              >
+                <Feather name="send" size={15} color={input.trim() && !typing ? '#fff' : colors.mutedForeground} />
+              </Pressable>
+            </View>
           </View>
-        </View>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      )}
     </View>
   );
 }
@@ -224,7 +266,6 @@ const styles = StyleSheet.create({
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   headerAvatar: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { fontSize: 17, fontFamily: 'Inter_700Bold', color: '#fff' },
-  onlineDot: { width: 6, height: 6, borderRadius: 3 },
   headerStatus: { fontSize: 12, fontFamily: 'Inter_500Medium' },
   clearBtn: { width: 36, height: 36, borderRadius: 11, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   emptyWrap: { flex: 1, alignItems: 'center', paddingHorizontal: 24, paddingTop: 36 },
@@ -251,4 +292,9 @@ const styles = StyleSheet.create({
   inputRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, borderWidth: 1, borderRadius: 18, paddingLeft: 16, paddingRight: 8, paddingVertical: 8 },
   textInput: { flex: 1, fontSize: 15, fontFamily: 'Inter_400Regular', maxHeight: 120, paddingVertical: 4 },
   sendBtn: { width: 36, height: 36, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  agentCard: { alignItems: 'center', gap: 6, padding: 12, borderRadius: 16, borderWidth: 1 },
+  agentIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  agentName: { fontSize: 11, fontFamily: 'Inter_600SemiBold', textAlign: 'center' },
+  statusDot: { width: 6, height: 6, borderRadius: 3 },
+  sectionLabel: { fontSize: 12, fontFamily: 'Inter_400Regular', textAlign: 'center', paddingHorizontal: 20 },
 });

@@ -43,7 +43,7 @@ export default function LoginScreen() {
     try {
       await login(email.trim(), password);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.replace('/(tabs)/');
+      router.replace('/(tabs)');
     } catch {
       setError('Invalid email or password. Please try again.');
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
