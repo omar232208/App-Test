@@ -19,6 +19,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useColors } from '@/hooks/useColors';
 import { supabase } from '@/lib/supabase';
 import * as Haptics from 'expo-haptics';
+import * as Linking from 'expo-linking';
 
 export default function LoginScreen() {
   const colors = useColors();
@@ -162,7 +163,7 @@ export default function LoginScreen() {
                 return;
               }
               try {
-                await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: 'com.devosoftware.devos://reset-password' });
+                await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: Linking.createURL('/') });
                 Alert.alert('Reset Link Sent', 'Check your email for a password reset link.');
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
               } catch {

@@ -75,25 +75,29 @@ export function AgentsProvider({ children }: { children: React.ReactNode }) {
 
   const loadAgents = useCallback(async () => {
     if (!user) { setAgents([]); return; }
-    const { data } = await supabase.from('ai_agents').select('*').eq('user_id', user.id).order('created_at');
-    if (data) {
-      setAgents(data.map(a => ({
-        id: a.id, type: a.type as AgentType, name: a.name,
-        status: a.status, config: a.config, lastActive: a.last_active, createdAt: a.created_at,
-      })));
-    }
+    try {
+      const { data } = await supabase.from('ai_agents').select('*').eq('user_id', user.id).order('created_at');
+      if (data) {
+        setAgents(data.map(a => ({
+          id: a.id, type: a.type as AgentType, name: a.name,
+          status: a.status, config: a.config, lastActive: a.last_active, createdAt: a.created_at,
+        })));
+      }
+    } catch { /* ignore */ }
   }, [user]);
 
   const loadAgentTasks = useCallback(async () => {
     if (!user) { setAgentTasks([]); return; }
-    const { data } = await supabase.from('agent_tasks').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
-    if (data) {
-      setAgentTasks(data.map(t => ({
-        id: t.id, agentId: t.agent_id, title: t.title, description: t.description,
-        status: t.status, result: t.result, prompt: t.prompt,
-        createdAt: t.created_at, completedAt: t.completed_at,
-      })));
-    }
+    try {
+      const { data } = await supabase.from('agent_tasks').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
+      if (data) {
+        setAgentTasks(data.map(t => ({
+          id: t.id, agentId: t.agent_id, title: t.title, description: t.description,
+          status: t.status, result: t.result, prompt: t.prompt,
+          createdAt: t.created_at, completedAt: t.completed_at,
+        })));
+      }
+    } catch { /* ignore */ }
   }, [user]);
 
   useEffect(() => {

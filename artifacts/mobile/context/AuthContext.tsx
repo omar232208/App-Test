@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { makeRedirectUri } from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import { supabase } from '@/lib/supabase';
 import type { Session, User } from '@supabase/supabase-js';
@@ -28,11 +27,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
-
-const redirectUri = makeRedirectUri({
-  scheme: 'com.devosoftware.devos',
-  preferLocalhost: true,
-});
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AppUser | null>(null);
@@ -85,15 +79,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function openOAuth(provider: 'google' | 'github') {
+    const redirectTo = Linking.createURL('/');
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: redirectUri, skipBrowserRedirect: true },
+      options: { redirectTo, skipBrowserRedirect: true },
     });
     if (error) throw error;
     if (!data?.url) throw new Error('No OAuth URL returned');
-    const result = await WebBrowser.openAuthSessionAsync(data.url, redirectUri);
+    const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
     if (result.type === 'success') {
-      const params = new URLSearchParams(result.url.split('#')[1] || '');
+      const hash = result.url.split('#')[1];
+      if (!hash) {
+        const hasCode = result.url.includes('code=');
+        if (hasCode) {
+          const params = new URLSearchParams(result.url.split('?')[1] || '');
+          const code = params.get('code');
+          if (code) {
+            await supabase.auth.exchangeCodeForSession(code);
+            return;
+          }
+        }
+        throw new Error('OAuth failed - no tokens received');
+      }
+      const params = new URLSearchParams(hash);
       const accessToken = params.get('access_token');
       const refreshToken = params.get('refresh_token');
       if (accessToken) {
@@ -101,6 +109,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           access_token: accessToken,
           refresh_token: refreshToken || '',
         });
+      } else {
+        throw new Error('OAuth failed - no access token');
       }
     } else {
       throw new Error('OAuth cancelled');
