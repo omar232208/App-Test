@@ -1,0 +1,62 @@
+/**
+ * DevOS Design Tokens
+ * AMOLED dark-first palette with indigo/violet accent.
+ */
+
+const colors = {
+  light: {
+    text: '#09090B',
+    tint: '#4F46E5',
+    background: '#F5F5FA',
+    foreground: '#09090B',
+    card: '#FFFFFF',
+    cardForeground: '#09090B',
+    primary: '#4F46E5',
+    primaryForeground: '#FFFFFF',
+    secondary: '#EEF2FF',
+    secondaryForeground: '#3730A3',
+    muted: '#F4F4F5',
+    mutedForeground: '#71717A',
+    accent: '#7C3AED',
+    accentForeground: '#FFFFFF',
+    destructive: '#EF4444',
+    destructiveForeground: '#FFFFFF',
+    border: '#E4E4E7',
+    input: '#E9E9EF',
+    success: '#22C55E',
+    warning: '#F59E0B',
+    info: '#3B82F6',
+    surface: '#FFFFFF',
+    surfaceSecondary: '#F4F4F5',
+    tabBar: 'rgba(245,245,250,0.92)',
+  },
+  dark: {
+    text: '#F4F4F5',
+    tint: '#818CF8',
+    background: '#05050A',
+    foreground: '#F4F4F5',
+    card: '#0D0D16',
+    cardForeground: '#F4F4F5',
+    primary: '#6366F1',
+    primaryForeground: '#FFFFFF',
+    secondary: '#13132A',
+    secondaryForeground: '#A5B4FC',
+    muted: '#111122',
+    mutedForeground: '#71717A',
+    accent: '#8B5CF6',
+    accentForeground: '#FFFFFF',
+    destructive: '#EF4444',
+    destructiveForeground: '#FFFFFF',
+    border: '#1C1C30',
+    input: '#1A1A2E',
+    success: '#22C55E',
+    warning: '#F59E0B',
+    info: '#60A5FA',
+    surface: '#0D0D16',
+    surfaceSecondary: '#111122',
+    tabBar: 'rgba(10,10,20,0.92)',
+  },
+  radius: 14,
+};
+
+export default colors;

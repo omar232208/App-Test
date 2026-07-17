@@ -1,0 +1,706 @@
+Build a next-generation, production-ready mobile platform called **DevOS** — the ultimate operating system for developers. This is not a simple app or prototype. It must be a premium ecosystem that combines the best ideas from Notion, Cursor, Linear, GitHub, Slack, Raycast, Obsidian, Vercel, Jira, Trello, ClickUp, Figma, and Discord into one beautiful mobile experience.
+
+The application must feel like a $100M startup product with world-class UI/UX, flawless animations, enterprise architecture, and an unforgettable user experience.
+
+====================================================
+THE MOST IMPORTANT PRIORITY (70%)
+PREMIUM UI / UX DESIGN
+====================================================
+
+The design is the highest priority.
+
+Spend most of the effort creating an incredible visual experience.
+
+DO NOT create generic templates.
+
+DO NOT use boring Material Design.
+
+DO NOT use simple layouts.
+
+Every screen should feel luxurious.
+
+Use inspiration from:
+
+• Apple
+• Stripe
+• Linear
+• Arc Browser
+• Raycast
+• Notion
+• Vercel
+• Framer
+• Discord
+• GitHub Mobile
+
+Design Requirements:
+
+• Premium Glassmorphism
+• Soft Blur Effects
+• Acrylic Panels
+• Floating Cards
+• Dynamic Gradients
+• Perfect Shadows
+• Rounded Corners
+• Frosted Glass
+• Modern Color Palette
+• AMOLED Dark Mode
+• Beautiful Light Mode
+• Dynamic Theme Engine
+• Smooth Motion Design
+• Native Feeling
+• 120 FPS Animations
+• Hero Animations
+• Shared Element Transitions
+• Animated Backgrounds
+• Animated Icons
+• Animated Navigation
+• Interactive Buttons
+• Elastic Gestures
+• Haptic Feedback
+• Ripple Effects
+• Beautiful Empty States
+• Premium Illustrations
+• Lottie Animations
+• Skeleton Loading
+• Blur Navigation Bar
+• Floating Bottom Navigation
+• Floating Action Buttons
+• Dynamic Headers
+• Smart Search Animation
+• Responsive Layout
+• Tablet Layout
+• Landscape Support
+• Elegant Typography
+• Perfect White Space
+• Grid System
+• Modern Cards
+• Gradient Borders
+• Animated Charts
+• Animated Progress Rings
+• Premium Dashboard
+• Elegant Micro Interactions
+
+Every page should feel handcrafted.
+
+Every transition should be smooth.
+
+Every button should have feedback.
+
+Every animation should be premium.
+
+Every screen should look like it belongs in Apple's Design Awards.
+
+====================================================
+WELCOME EXPERIENCE
+====================================================
+
+Animated Splash Screen
+
+Animated Logo
+
+Premium Intro
+
+5 Beautiful Onboarding Screens
+
+Interactive Animations
+
+Skip
+
+Get Started
+
+====================================================
+AUTHENTICATION
+====================================================
+
+Complete Authentication System
+
+• Login
+• Register
+• Google Sign In
+• GitHub Login
+• Apple Login
+• Email Verification
+• Forgot Password
+• Reset Password
+• Face ID
+• Fingerprint
+• Two Factor Authentication
+• Session Management
+• Logout
+• Delete Account
+
+====================================================
+DATABASE
+====================================================
+
+Use Supabase.
+
+Implement:
+
+• Authentication
+• PostgreSQL
+• Storage
+• Realtime
+• Row Level Security
+• Edge Functions
+• Policies
+• Triggers
+• Secure APIs
+
+No fake data.
+
+No placeholders.
+
+Everything must use real backend data.
+
+====================================================
+HOME DASHBOARD
+====================================================
+
+Create an incredible dashboard.
+
+Include:
+
+• Daily Overview
+• AI Summary
+• Activity Timeline
+• Productivity Score
+• Active Projects
+• Recent Tasks
+• GitHub Activity
+• Calendar
+• Notifications
+• Analytics
+• Quick Actions
+• Focus Timer
+• Weather Widget
+• Coding Time
+• Weekly Goals
+
+====================================================
+WORKSPACES
+====================================================
+
+Unlimited Workspaces
+
+Custom Icons
+
+Themes
+
+Members
+
+Permissions
+
+Roles
+
+Analytics
+
+====================================================
+PROJECTS
+====================================================
+
+Professional Project Management
+
+Kanban
+
+Timeline
+
+Calendar
+
+Roadmap
+
+Milestones
+
+Tasks
+
+Members
+
+Files
+
+Activity
+
+Priority
+
+Labels
+
+Status
+
+Deadlines
+
+Dependencies
+
+Archive
+
+====================================================
+AI ASSISTANT
+====================================================
+
+Build a powerful AI Assistant.
+
+Features:
+
+• AI Chat
+• Explain Code
+• Generate Code
+• Fix Bugs
+• Refactor Code
+• Generate APIs
+• SQL Generator
+• Docker Generator
+• README Generator
+• Documentation Generator
+• Architecture Generator
+• Project Chat
+• AI Search
+• AI Commands
+• AI Voice Assistant
+
+====================================================
+GITHUB
+====================================================
+
+GitHub Integration
+
+Repositories
+
+Branches
+
+Commits
+
+Issues
+
+PRs
+
+Actions
+
+Stars
+
+Releases
+
+Profile
+
+Statistics
+
+====================================================
+CODE EDITOR
+====================================================
+
+Professional Code Editor
+
+Syntax Highlighting
+
+Themes
+
+Autocomplete
+
+Search
+
+Replace
+
+Tabs
+
+Code Folding
+
+Mini Map
+
+Terminal
+
+====================================================
+NOTES
+====================================================
+
+Markdown
+
+Rich Text
+
+Images
+
+Videos
+
+Tables
+
+Code Blocks
+
+Folders
+
+Tags
+
+History
+
+Search
+
+====================================================
+SNIPPETS
+====================================================
+
+Professional Snippet Manager
+
+Languages
+
+Tags
+
+Favorites
+
+Folders
+
+Copy
+
+Share
+
+Search
+
+====================================================
+CHAT
+====================================================
+
+Realtime Chat
+
+Private
+
+Groups
+
+Channels
+
+Voice Messages
+
+Files
+
+Images
+
+GIFs
+
+Emoji
+
+Typing Indicator
+
+Online Status
+
+Read Receipts
+
+====================================================
+TEAM
+====================================================
+
+Invite Members
+
+Permissions
+
+Roles
+
+Realtime Presence
+
+Activity Feed
+
+====================================================
+CALENDAR
+====================================================
+
+Agenda
+
+Week
+
+Month
+
+Events
+
+Meetings
+
+Reminders
+
+Recurring Events
+
+====================================================
+FILES
+====================================================
+
+Upload
+
+Download
+
+Preview
+
+PDF
+
+Images
+
+Videos
+
+Code Files
+
+Folders
+
+Search
+
+Cloud Storage
+
+====================================================
+ANALYTICS
+====================================================
+
+Beautiful Charts
+
+Heatmaps
+
+Coding Hours
+
+Focus Time
+
+Tasks Completed
+
+Projects
+
+Weekly Report
+
+Monthly Report
+
+Performance
+
+====================================================
+NOTIFICATIONS
+====================================================
+
+Realtime
+
+Push
+
+Email
+
+In-App
+
+Notification Center
+
+====================================================
+SEARCH
+====================================================
+
+Global Search
+
+AI Search
+
+Projects
+
+Tasks
+
+Files
+
+Members
+
+Repositories
+
+Notes
+
+Commands
+
+====================================================
+SETTINGS
+====================================================
+
+Profile
+
+Theme
+
+Language
+
+Notifications
+
+Privacy
+
+Security
+
+Backup
+
+Export
+
+Delete Account
+
+About
+
+====================================================
+SECURITY
+====================================================
+
+JWT
+
+Encryption
+
+Secure Storage
+
+HTTPS
+
+Validation
+
+Rate Limiting
+
+Environment Variables
+
+====================================================
+PERFORMANCE
+====================================================
+
+Lazy Loading
+
+Infinite Scroll
+
+Caching
+
+Prefetching
+
+Realtime Updates
+
+Optimistic UI
+
+Offline Mode
+
+Background Sync
+
+====================================================
+UI COMPONENTS
+====================================================
+
+Create a complete premium design system.
+
+Buttons
+
+Cards
+
+Dialogs
+
+Sheets
+
+Snackbars
+
+Toasts
+
+Search Overlay
+
+Dropdowns
+
+Tabs
+
+Segmented Controls
+
+Progress Rings
+
+Charts
+
+Avatars
+
+Badges
+
+FAB
+
+Command Palette
+
+Timeline
+
+Accordion
+
+Bottom Sheets
+
+Navigation Rail
+
+Blur Header
+
+Glass Cards
+
+Animated Lists
+
+Premium Inputs
+
+Floating Search
+
+Beautiful Forms
+
+====================================================
+TECH STACK
+====================================================
+
+React Native
+
+Expo
+
+TypeScript
+
+Expo Router
+
+NativeWind
+
+Supabase
+
+React Query
+
+Zustand
+
+React Hook Form
+
+Zod
+
+Reanimated
+
+Gesture Handler
+
+MMKV
+
+FlashList
+
+Expo Notifications
+
+Expo Secure Store
+
+====================================================
+CODE QUALITY
+====================================================
+
+Use:
+
+Clean Architecture
+
+Feature-Based Structure
+
+SOLID Principles
+
+Reusable Components
+
+Reusable Hooks
+
+Strict TypeScript
+
+ESLint
+
+Prettier
+
+Scalable Code
+
+Maintainable Code
+
+Production Ready
+
+====================================================
+IMPORTANT
+====================================================
+
+Remove every fake, demo, mock, placeholder, or hardcoded data from the project.
+
+Connect every screen to the real database.
+
+Every button must work.
+
+Every feature must be functional.
+
+Every CRUD operation must update the backend.
+
+If there is no data, show beautiful premium Empty States instead of fake content.
+
+====================================================
+FINAL GOAL
+====================================================
+
+The final application should feel like the official operating system for developers.
+
+Users should immediately feel that this app is more beautiful than Notion, more polished than Linear, smoother than Discord, and more premium than GitHub Mobile.
+
+The application should not look AI-generated.
+
+It should look handcrafted by a world-class product design team with years of experience.
+
+Every animation, spacing, typography, icon, color, transition, interaction, and component must reflect a premium, modern, elegant, luxurious, enterprise-grade design that is ready to compete with the best productivity applications in the world.

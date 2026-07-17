@@ -1,0 +1,275 @@
+You are now acting as a Senior Staff Software Engineer, Senior Product Designer, UI/UX Architect, Backend Engineer, DevOps Engineer, and QA Engineer.
+
+This is NOT a prototype. This project must become a production-ready application.
+
+=========================================================
+FIRST: FIX THE ENTIRE UI/UX
+=========================================================
+
+The authentication screens currently have layout problems.
+
+Fix every UI issue professionally.
+
+Requirements:
+
+• Increase the overall page width and spacing.
+• Make every screen responsive for all phones.
+• Prevent any component from being cut off.
+• Ensure every button is fully visible.
+• Make the Safe Area correct.
+• Fix margins.
+• Fix paddings.
+• Fix alignment.
+• Fix spacing.
+• Fix keyboard overlap.
+• Prevent text overflow.
+• Prevent button overflow.
+• Fix scrolling.
+• Improve touch targets.
+• Improve typography.
+• Improve contrast.
+• Improve icon alignment.
+• Improve input alignment.
+• Improve form spacing.
+• Improve animations.
+• Improve transitions.
+• Improve loading states.
+
+The login screen should feel like an Apple Design Award winning app.
+
+=========================================================
+LOGIN PAGE
+=========================================================
+
+Redesign it completely.
+
+• Better spacing
+• Bigger layout
+• More premium cards
+• Better buttons
+• Better typography
+• Better animations
+• Better gradients
+• Better shadows
+• Better icons
+• Better social login buttons
+• Beautiful divider
+• Floating effects
+• Better forgot password link
+• Better create account section
+
+Nothing should look cramped.
+
+=========================================================
+REMOVE ALL FAKE DATA
+=========================================================
+
+Delete EVERYTHING fake.
+
+Remove:
+
+• Demo users
+• Mock users
+• Fake notifications
+• Fake tasks
+• Fake projects
+• Fake messages
+• Fake statistics
+• Fake analytics
+• Fake charts
+• Placeholder avatars
+• Placeholder images
+• Hardcoded arrays
+• Mock JSON
+• Demo APIs
+• Test data
+• Lorem Ipsum
+• Temporary data
+• Seed data
+
+Never use fake content again.
+
+=========================================================
+CONNECT EVERYTHING TO REAL BACKEND
+=========================================================
+
+Everything must work.
+
+Every button.
+
+Every screen.
+
+Every API.
+
+Every CRUD operation.
+
+Every authentication flow.
+
+Every upload.
+
+Every download.
+
+Everything.
+
+Use Supabase as the backend.
+
+Use real database queries.
+
+Never return fake responses.
+
+=========================================================
+AUTHENTICATION
+=========================================================
+
+Make authentication fully functional.
+
+• Google Login
+• GitHub Login
+• Email Login
+• Register
+• Forgot Password
+• Reset Password
+• Email Verification
+• Session Management
+• Logout
+• Delete Account
+
+Everything must actually work.
+
+=========================================================
+DATABASE
+=========================================================
+
+Connect every feature to Supabase.
+
+Implement:
+
+• Authentication
+• PostgreSQL
+• Storage
+• Realtime
+• Policies
+• Row Level Security
+• Edge Functions
+
+Every screen must use real database data.
+
+=========================================================
+EMPTY STATES
+=========================================================
+
+If there is no data...
+
+DO NOT create fake data.
+
+Instead create beautiful empty states.
+
+=========================================================
+PERFORMANCE
+=========================================================
+
+Optimize everything.
+
+Remove unused files.
+
+Remove duplicate code.
+
+Optimize images.
+
+Optimize animations.
+
+Optimize API calls.
+
+Optimize rendering.
+
+=========================================================
+PROJECT STRUCTURE
+=========================================================
+
+Clean Architecture.
+
+Feature Based Structure.
+
+Reusable Components.
+
+Reusable Hooks.
+
+Strict TypeScript.
+
+Production Ready.
+
+=========================================================
+WINDOWS COMPATIBILITY
+=========================================================
+
+Make the project fully compatible with Windows.
+
+Fix every script that uses Linux-only commands.
+
+Replace any shell command that depends on "sh", "rm", or other Unix-only tools with cross-platform Node.js or Windows-compatible alternatives.
+
+Ensure all npm and pnpm scripts work correctly on Windows without requiring manual fixes.
+
+=========================================================
+BUILD CONFIGURATION
+=========================================================
+
+Create all missing configuration files.
+
+Ensure:
+
+• Expo builds successfully.
+• Android builds successfully.
+• EAS Build works.
+• No build warnings.
+• No TypeScript errors.
+• No ESLint errors.
+
+=========================================================
+GITHUB
+=========================================================
+
+Prepare the project for GitHub.
+
+Initialize Git correctly.
+
+Create a professional:
+
+• README.md
+• .gitignore
+• LICENSE (MIT)
+• CONTRIBUTING.md
+• CHANGELOG.md
+• SECURITY.md
+• CODE_OF_CONDUCT.md
+
+Commit all changes.
+
+Push everything to the connected GitHub repository.
+
+If authentication is needed, prompt only for the required GitHub Personal Access Token and then complete the push automatically.
+
+=========================================================
+FINAL QUALITY CHECK
+=========================================================
+
+Before finishing:
+
+✔ No fake data
+✔ No placeholder content
+✔ No UI bugs
+✔ No overflow
+✔ No clipped components
+✔ No build errors
+✔ No TypeScript errors
+✔ No console errors
+✔ No unused code
+✔ No broken buttons
+✔ No broken navigation
+✔ No broken authentication
+✔ No broken database queries
+✔ No responsive issues
+✔ Windows compatible
+✔ Production ready
+
+Do not stop until every issue is fixed and the application is ready for real users.
