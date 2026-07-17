@@ -1,11 +1,6 @@
-/**
- * DataContext — all app data: Projects, Tasks, Notes, AI Messages,
- * Folders (with docs), Saved Images, Bookmarks.
- */
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-/* ─── Core types ──────────────────────────────────────────────── */
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from './AuthContext';
 
 export type Priority      = 'low' | 'medium' | 'high' | 'urgent';
 export type ProjectStatus = 'active' | 'completed' | 'archived' | 'paused';
@@ -35,8 +30,6 @@ export interface AIMessage {
   content: string; timestamp: string;
 }
 
-/* ─── New library types ───────────────────────────────────────── */
-
 export interface FolderDoc {
   id: string; folderId: string; title: string;
   content: string; createdAt: string; updatedAt: string;
@@ -58,63 +51,50 @@ export interface Bookmark {
   pinned: boolean; createdAt: string;
 }
 
-/* ─── Context type ────────────────────────────────────────────── */
-
 interface DataContextType {
-  /* Projects */
   projects: Project[];
-  addProject:    (p: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'tasks'>) => void;
-  updateProject: (id: string, u: Partial<Project>) => void;
-  deleteProject: (id: string) => void;
-  /* Tasks */
-  addTask:    (projectId: string, t: Omit<Task, 'id' | 'createdAt' | 'projectId'>) => void;
-  updateTask: (projectId: string, taskId: string, u: Partial<Task>) => void;
-  deleteTask: (projectId: string, taskId: string) => void;
-  /* Notes */
+  addProject:    (p: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'tasks'>) => Promise<void>;
+  updateProject: (id: string, u: Partial<Project>) => Promise<void>;
+  deleteProject: (id: string) => Promise<void>;
+  addTask:    (projectId: string, t: Omit<Task, 'id' | 'createdAt' | 'projectId'>) => Promise<void>;
+  updateTask: (projectId: string, taskId: string, u: Partial<Task>) => Promise<void>;
+  deleteTask: (projectId: string, taskId: string) => Promise<void>;
   notes: Note[];
-  addNote:    (n: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateNote: (id: string, u: Partial<Note>) => void;
-  deleteNote: (id: string) => void;
-  /* AI */
-  aiMessages:     AIMessage[];
-  addAIMessage:   (m: Omit<AIMessage, 'id' | 'timestamp'>) => void;
-  clearAIMessages:() => void;
-  /* Folders */
+  addNote:    (n: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateNote: (id: string, u: Partial<Note>) => Promise<void>;
+  deleteNote: (id: string) => Promise<void>;
+  aiMessages: AIMessage[];
+  addAIMessage:   (m: Omit<AIMessage, 'id' | 'timestamp'>) => Promise<void>;
+  clearAIMessages:() => Promise<void>;
   folders: AppFolder[];
-  addFolder:    (f: Omit<AppFolder, 'id' | 'createdAt' | 'updatedAt' | 'docs'>) => void;
-  updateFolder: (id: string, u: Partial<AppFolder>) => void;
-  deleteFolder: (id: string) => void;
-  addDoc:    (folderId: string, d: Omit<FolderDoc, 'id' | 'createdAt' | 'updatedAt' | 'folderId'>) => void;
-  updateDoc: (folderId: string, docId: string, u: Partial<FolderDoc>) => void;
-  deleteDoc: (folderId: string, docId: string) => void;
-  /* Images */
+  addFolder:    (f: Omit<AppFolder, 'id' | 'createdAt' | 'updatedAt' | 'docs'>) => Promise<void>;
+  updateFolder: (id: string, u: Partial<AppFolder>) => Promise<void>;
+  deleteFolder: (id: string) => Promise<void>;
+  addDoc:    (folderId: string, d: Omit<FolderDoc, 'id' | 'createdAt' | 'updatedAt' | 'folderId'>) => Promise<void>;
+  updateDoc: (folderId: string, docId: string, u: Partial<FolderDoc>) => Promise<void>;
+  deleteDoc: (folderId: string, docId: string) => Promise<void>;
   savedImages: SavedImage[];
-  addImage:    (img: Omit<SavedImage, 'id' | 'createdAt'>) => void;
-  deleteImage: (id: string) => void;
-  /* Bookmarks */
+  addImage:    (img: Omit<SavedImage, 'id' | 'createdAt'>) => Promise<void>;
+  deleteImage: (id: string) => Promise<void>;
   bookmarks: Bookmark[];
-  addBookmark:    (b: Omit<Bookmark, 'id' | 'createdAt'>) => void;
-  updateBookmark: (id: string, u: Partial<Bookmark>) => void;
-  deleteBookmark: (id: string) => void;
+  addBookmark:    (b: Omit<Bookmark, 'id' | 'createdAt'>) => Promise<void>;
+  updateBookmark: (id: string, u: Partial<Bookmark>) => Promise<void>;
+  deleteBookmark: (id: string) => Promise<void>;
 }
-
-/* ─── Storage keys ────────────────────────────────────────────── */
-const KEYS = {
-  projects: '@devos_projects',
-  notes:    '@devos_notes',
-  ai:       '@devos_ai',
-  folders:  '@devos_folders',
-  images:   '@devos_images',
-  bookmarks:'@devos_bookmarks',
-};
 
 function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
 
+function calcProgress(tasks: Task[]) {
+  if (!tasks.length) return 0;
+  return Math.round((tasks.filter(t => t.status === 'done').length / tasks.length) * 100);
+}
+
 const DataContext = createContext<DataContextType | null>(null);
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
   const [projects,    setProjects]    = useState<Project[]>([]);
   const [notes,       setNotes]       = useState<Note[]>([]);
   const [aiMessages,  setAIMessages]  = useState<AIMessage[]>([]);
@@ -122,164 +102,187 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [savedImages, setSavedImages] = useState<SavedImage[]>([]);
   const [bookmarks,   setBookmarks]   = useState<Bookmark[]>([]);
 
+  const loadProjects = useCallback(async () => {
+    if (!user) { setProjects([]); return; }
+    const { data: pData } = await supabase.from('projects').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
+    const { data: tData } = await supabase.from('tasks').select('*').eq('user_id', user.id);
+    if (!pData) return;
+    const tasksMap: Record<string, Task[]> = {};
+    for (const t of tData || []) {
+      if (!tasksMap[t.project_id]) tasksMap[t.project_id] = [];
+      tasksMap[t.project_id].push({ id: t.id, projectId: t.project_id, title: t.title, status: t.status, priority: t.priority, dueDate: t.due_date, createdAt: t.created_at });
+    }
+    setProjects(pData.map(p => ({
+      id: p.id, name: p.name, description: p.description || '',
+      status: p.status, color: p.color, icon: p.icon,
+      progress: p.progress || 0, tasks: tasksMap[p.id] || [],
+      createdAt: p.created_at, updatedAt: p.updated_at,
+    })));
+  }, [user]);
+
+  const loadNotes = useCallback(async () => {
+    if (!user) { setNotes([]); return; }
+    const { data } = await supabase.from('notes').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
+    if (data) setNotes(data.map(n => ({ id: n.id, title: n.title, content: n.content || '', color: n.color, tags: n.tags || [], pinned: n.pinned, createdAt: n.created_at, updatedAt: n.updated_at })));
+  }, [user]);
+
+  const loadAIMessages = useCallback(async () => {
+    if (!user) { setAIMessages([]); return; }
+    const { data } = await supabase.from('ai_messages').select('*').eq('user_id', user.id).order('timestamp', { ascending: true });
+    if (data) setAIMessages(data.map(m => ({ id: m.id, role: m.role, content: m.content, timestamp: m.timestamp })));
+  }, [user]);
+
+  const loadFolders = useCallback(async () => {
+    if (!user) { setFolders([]); return; }
+    const { data: fData } = await supabase.from('folders').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
+    if (!fData) return;
+    const { data: dData } = await supabase.from('folder_docs').select('*').eq('user_id', user.id);
+    const docsMap: Record<string, FolderDoc[]> = {};
+    for (const d of dData || []) {
+      if (!docsMap[d.folder_id]) docsMap[d.folder_id] = [];
+      docsMap[d.folder_id].push({ id: d.id, folderId: d.folder_id, title: d.title, content: d.content || '', createdAt: d.created_at, updatedAt: d.updated_at });
+    }
+    setFolders(fData.map(f => ({ id: f.id, name: f.name, color: f.color, icon: f.icon, docs: docsMap[f.id] || [], createdAt: f.created_at, updatedAt: f.updated_at })));
+  }, [user]);
+
+  const loadImages = useCallback(async () => {
+    if (!user) { setSavedImages([]); return; }
+    const { data } = await supabase.from('saved_images').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
+    if (data) setSavedImages(data.map(i => ({ id: i.id, uri: i.uri, name: i.caption, note: i.caption, createdAt: i.created_at })));
+  }, [user]);
+
+  const loadBookmarks = useCallback(async () => {
+    if (!user) { setBookmarks([]); return; }
+    const { data } = await supabase.from('bookmarks').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
+    if (data) setBookmarks(data.map(b => ({ id: b.id, url: b.url, title: b.title, description: b.description || '', tags: [], pinned: false, createdAt: b.created_at })));
+  }, [user]);
+
   useEffect(() => {
-    (async () => {
-      try {
-        const [p, n, a, f, im, bk] = await Promise.all(
-          Object.values(KEYS).map(k => AsyncStorage.getItem(k))
-        );
-        if (p)  setProjects(JSON.parse(p));
-        if (n)  setNotes(JSON.parse(n));
-        if (a)  setAIMessages(JSON.parse(a));
-        if (f)  setFolders(JSON.parse(f));
-        if (im) setSavedImages(JSON.parse(im));
-        if (bk) setBookmarks(JSON.parse(bk));
-      } catch (_) {}
-    })();
-  }, []);
+    if (user) { loadProjects(); loadNotes(); loadAIMessages(); loadFolders(); loadImages(); loadBookmarks(); }
+    else { setProjects([]); setNotes([]); setAIMessages([]); setFolders([]); setSavedImages([]); setBookmarks([]); }
+  }, [user]);
 
-  /* ── helpers ── */
-  const save = (key: string) => async (data: any[]) =>
-    AsyncStorage.setItem(key, JSON.stringify(data));
-
-  const sp = save(KEYS.projects);
-  const sn = save(KEYS.notes);
-  const sa = save(KEYS.ai);
-  const sf = save(KEYS.folders);
-  const si = save(KEYS.images);
-  const sb = save(KEYS.bookmarks);
-
-  /* ── Projects ── */
-  function addProject(p: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'tasks'>) {
-    const now = new Date().toISOString();
-    const next = [{ ...p, id: uid(), tasks: [], createdAt: now, updatedAt: now }, ...projects];
-    setProjects(next); sp(next);
+  async function addProject(p: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'tasks'>) {
+    if (!user) return;
+    const id = uid();
+    await supabase.from('projects').insert({ id, user_id: user.id, name: p.name, description: p.description, status: p.status, color: p.color, icon: p.icon, progress: 0 });
+    await loadProjects();
   }
-  function updateProject(id: string, u: Partial<Project>) {
-    const next = projects.map(p => p.id === id ? { ...p, ...u, updatedAt: new Date().toISOString() } : p);
-    setProjects(next); sp(next);
+  async function updateProject(id: string, u: Partial<Project>) {
+    if (!user) return;
+    await supabase.from('projects').update({ name: u.name, description: u.description, status: u.status, color: u.color, icon: u.icon, progress: u.progress, updated_at: new Date().toISOString() }).eq('id', id);
+    await loadProjects();
   }
-  function deleteProject(id: string) {
-    const next = projects.filter(p => p.id !== id);
-    setProjects(next); sp(next);
+  async function deleteProject(id: string) {
+    if (!user) return;
+    await supabase.from('tasks').delete().eq('project_id', id);
+    await supabase.from('projects').delete().eq('id', id);
+    await loadProjects();
   }
 
-  /* ── Tasks ── */
-  function addTask(projectId: string, t: Omit<Task, 'id' | 'createdAt' | 'projectId'>) {
-    const task: Task = { ...t, id: uid(), projectId, createdAt: new Date().toISOString() };
-    const next = projects.map(p => {
-      if (p.id !== projectId) return p;
-      const tasks = [task, ...p.tasks];
-      return { ...p, tasks, progress: calcProgress(tasks), updatedAt: new Date().toISOString() };
-    });
-    setProjects(next); sp(next);
+  async function addTask(projectId: string, t: Omit<Task, 'id' | 'createdAt' | 'projectId'>) {
+    if (!user) return;
+    await supabase.from('tasks').insert({ id: uid(), project_id: projectId, userId: user.id, title: t.title, status: t.status, priority: t.priority, due_date: t.dueDate || null });
+    await loadProjects();
   }
-  function updateTask(projectId: string, taskId: string, u: Partial<Task>) {
-    const next = projects.map(p => {
-      if (p.id !== projectId) return p;
-      const tasks = p.tasks.map(t => t.id === taskId ? { ...t, ...u } : t);
-      return { ...p, tasks, progress: calcProgress(tasks), updatedAt: new Date().toISOString() };
-    });
-    setProjects(next); sp(next);
+  async function updateTask(projectId: string, taskId: string, u: Partial<Task>) {
+    if (!user) return;
+    await supabase.from('tasks').update({ title: u.title, status: u.status, priority: u.priority, due_date: u.dueDate || null }).eq('id', taskId);
+    await loadProjects();
   }
-  function deleteTask(projectId: string, taskId: string) {
-    const next = projects.map(p => {
-      if (p.id !== projectId) return p;
-      const tasks = p.tasks.filter(t => t.id !== taskId);
-      return { ...p, tasks, progress: calcProgress(tasks), updatedAt: new Date().toISOString() };
-    });
-    setProjects(next); sp(next);
-  }
-  function calcProgress(tasks: Task[]) {
-    if (!tasks.length) return 0;
-    return Math.round((tasks.filter(t => t.status === 'done').length / tasks.length) * 100);
+  async function deleteTask(projectId: string, taskId: string) {
+    if (!user) return;
+    await supabase.from('tasks').delete().eq('id', taskId);
+    await loadProjects();
   }
 
-  /* ── Notes ── */
-  function addNote(n: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>) {
-    const now = new Date().toISOString();
-    const next = [{ ...n, id: uid(), createdAt: now, updatedAt: now }, ...notes];
-    setNotes(next); sn(next);
+  async function addNote(n: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>) {
+    if (!user) return;
+    const id = uid();
+    await supabase.from('notes').insert({ id, user_id: user.id, title: n.title, content: n.content, color: n.color, tags: n.tags || [], pinned: n.pinned });
+    await loadNotes();
   }
-  function updateNote(id: string, u: Partial<Note>) {
-    const next = notes.map(n => n.id === id ? { ...n, ...u, updatedAt: new Date().toISOString() } : n);
-    setNotes(next); sn(next);
+  async function updateNote(id: string, u: Partial<Note>) {
+    if (!user) return;
+    await supabase.from('notes').update({ title: u.title, content: u.content, color: u.color, tags: u.tags, pinned: u.pinned, updated_at: new Date().toISOString() }).eq('id', id);
+    await loadNotes();
   }
-  function deleteNote(id: string) {
-    const next = notes.filter(n => n.id !== id);
-    setNotes(next); sn(next);
-  }
-
-  /* ── AI ── */
-  function addAIMessage(m: Omit<AIMessage, 'id' | 'timestamp'>) {
-    const msg: AIMessage = { ...m, id: uid(), timestamp: new Date().toISOString() };
-    const next = [...aiMessages, msg];
-    setAIMessages(next); sa(next);
-  }
-  function clearAIMessages() { setAIMessages([]); sa([]); }
-
-  /* ── Folders ── */
-  function addFolder(f: Omit<AppFolder, 'id' | 'createdAt' | 'updatedAt' | 'docs'>) {
-    const now = new Date().toISOString();
-    const next = [{ ...f, id: uid(), docs: [], createdAt: now, updatedAt: now }, ...folders];
-    setFolders(next); sf(next);
-  }
-  function updateFolder(id: string, u: Partial<AppFolder>) {
-    const next = folders.map(f => f.id === id ? { ...f, ...u, updatedAt: new Date().toISOString() } : f);
-    setFolders(next); sf(next);
-  }
-  function deleteFolder(id: string) {
-    const next = folders.filter(f => f.id !== id);
-    setFolders(next); sf(next);
-  }
-  function addDoc(folderId: string, d: Omit<FolderDoc, 'id' | 'createdAt' | 'updatedAt' | 'folderId'>) {
-    const now = new Date().toISOString();
-    const doc: FolderDoc = { ...d, id: uid(), folderId, createdAt: now, updatedAt: now };
-    const next = folders.map(f => {
-      if (f.id !== folderId) return f;
-      return { ...f, docs: [doc, ...f.docs], updatedAt: now };
-    });
-    setFolders(next); sf(next);
-  }
-  function updateDoc(folderId: string, docId: string, u: Partial<FolderDoc>) {
-    const now = new Date().toISOString();
-    const next = folders.map(f => {
-      if (f.id !== folderId) return f;
-      const docs = f.docs.map(d => d.id === docId ? { ...d, ...u, updatedAt: now } : d);
-      return { ...f, docs, updatedAt: now };
-    });
-    setFolders(next); sf(next);
-  }
-  function deleteDoc(folderId: string, docId: string) {
-    const next = folders.map(f => {
-      if (f.id !== folderId) return f;
-      return { ...f, docs: f.docs.filter(d => d.id !== docId) };
-    });
-    setFolders(next); sf(next);
+  async function deleteNote(id: string) {
+    if (!user) return;
+    await supabase.from('notes').delete().eq('id', id);
+    await loadNotes();
   }
 
-  /* ── Images ── */
-  function addImage(img: Omit<SavedImage, 'id' | 'createdAt'>) {
-    const next = [{ ...img, id: uid(), createdAt: new Date().toISOString() }, ...savedImages];
-    setSavedImages(next); si(next);
+  async function addAIMessage(m: Omit<AIMessage, 'id' | 'timestamp'>) {
+    if (!user) return;
+    await supabase.from('ai_messages').insert({ id: uid(), user_id: user.id, role: m.role, content: m.content });
+    await loadAIMessages();
   }
-  function deleteImage(id: string) {
-    const next = savedImages.filter(i => i.id !== id);
-    setSavedImages(next); si(next);
+  async function clearAIMessages() {
+    if (!user) return;
+    await supabase.from('ai_messages').delete().eq('user_id', user.id);
+    await loadAIMessages();
   }
 
-  /* ── Bookmarks ── */
-  function addBookmark(b: Omit<Bookmark, 'id' | 'createdAt'>) {
-    const next = [{ ...b, id: uid(), createdAt: new Date().toISOString() }, ...bookmarks];
-    setBookmarks(next); sb(next);
+  async function addFolder(f: Omit<AppFolder, 'id' | 'createdAt' | 'updatedAt' | 'docs'>) {
+    if (!user) return;
+    const id = uid();
+    await supabase.from('folders').insert({ id, user_id: user.id, name: f.name, color: f.color, icon: f.icon });
+    await loadFolders();
   }
-  function updateBookmark(id: string, u: Partial<Bookmark>) {
-    const next = bookmarks.map(b => b.id === id ? { ...b, ...u } : b);
-    setBookmarks(next); sb(next);
+  async function updateFolder(id: string, u: Partial<AppFolder>) {
+    if (!user) return;
+    await supabase.from('folders').update({ name: u.name, color: u.color, icon: u.icon, updated_at: new Date().toISOString() }).eq('id', id);
+    await loadFolders();
   }
-  function deleteBookmark(id: string) {
-    const next = bookmarks.filter(b => b.id !== id);
-    setBookmarks(next); sb(next);
+  async function deleteFolder(id: string) {
+    if (!user) return;
+    await supabase.from('folder_docs').delete().eq('folder_id', id);
+    await supabase.from('folders').delete().eq('id', id);
+    await loadFolders();
+  }
+  async function addDoc(folderId: string, d: Omit<FolderDoc, 'id' | 'createdAt' | 'updatedAt' | 'folderId'>) {
+    if (!user) return;
+    await supabase.from('folder_docs').insert({ id: uid(), folder_id: folderId, user_id: user.id, title: d.title, content: d.content });
+    await loadFolders();
+  }
+  async function updateDoc(folderId: string, docId: string, u: Partial<FolderDoc>) {
+    if (!user) return;
+    await supabase.from('folder_docs').update({ title: u.title, content: u.content, updated_at: new Date().toISOString() }).eq('id', docId);
+    await loadFolders();
+  }
+  async function deleteDoc(folderId: string, docId: string) {
+    if (!user) return;
+    await supabase.from('folder_docs').delete().eq('id', docId);
+    await loadFolders();
+  }
+
+  async function addImage(img: Omit<SavedImage, 'id' | 'createdAt'>) {
+    if (!user) return;
+    await supabase.from('saved_images').insert({ id: uid(), user_id: user.id, uri: img.uri, caption: img.note || img.name });
+    await loadImages();
+  }
+  async function deleteImage(id: string) {
+    if (!user) return;
+    await supabase.from('saved_images').delete().eq('id', id);
+    await loadImages();
+  }
+
+  async function addBookmark(b: Omit<Bookmark, 'id' | 'createdAt'>) {
+    if (!user) return;
+    const id = uid();
+    await supabase.from('bookmarks').insert({ id, user_id: user.id, title: b.title, url: b.url, description: b.description || '' });
+    await loadBookmarks();
+  }
+  async function updateBookmark(id: string, u: Partial<Bookmark>) {
+    if (!user) return;
+    await supabase.from('bookmarks').update({ title: u.title, url: u.url, description: u.description }).eq('id', id);
+    await loadBookmarks();
+  }
+  async function deleteBookmark(id: string) {
+    if (!user) return;
+    await supabase.from('bookmarks').delete().eq('id', id);
+    await loadBookmarks();
   }
 
   return (

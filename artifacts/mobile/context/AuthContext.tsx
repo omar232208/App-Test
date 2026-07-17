@@ -1,7 +1,13 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { makeRedirectUri } from 'expo-auth-session';
+import * as WebBrowser from 'expo-web-browser';
+import { supabase } from '@/lib/supabase';
+import type { Session, User } from '@supabase/supabase-js';
+import * as Linking from 'expo-linking';
 
-export interface User {
+WebBrowser.maybeCompleteAuthSession();
+
+export interface AppUser {
   id: string;
   name: string;
   email: string;
@@ -11,72 +17,91 @@ export interface User {
 }
 
 interface AuthContextType {
-  user: User | null;
+  user: AppUser | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  updateUser: (updates: Partial<User>) => Promise<void>;
+  updateUser: (updates: Partial<AppUser>) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
+  signInWithGithub: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-const AUTH_KEY = '@devos_user';
+const redirectUri = makeRedirectUri({
+  scheme: 'com.devosoftware.devos',
+  preferLocalhost: true,
+});
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadUser();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) setUser(mapUser(session.user));
+      setIsLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) setUser(mapUser(session.user));
+      else setUser(null);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  async function loadUser() {
-    try {
-      const raw = await AsyncStorage.getItem(AUTH_KEY);
-      if (raw) setUser(JSON.parse(raw));
-    } catch (_) {}
-    setIsLoading(false);
+  function mapUser(supabaseUser: User): AppUser {
+    return {
+      id: supabaseUser.id,
+      name: supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User',
+      email: supabaseUser.email || '',
+      avatar: supabaseUser.user_metadata?.avatar_url || supabaseUser.user_metadata?.picture,
+      role: supabaseUser.user_metadata?.role || 'Developer',
+      joinedAt: supabaseUser.created_at || new Date().toISOString(),
+    };
   }
 
-  async function login(email: string, _password: string) {
-    const u: User = {
-      id: Date.now().toString(),
-      name: email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
-      email,
-      role: 'Developer',
-      joinedAt: new Date().toISOString(),
-    };
-    await AsyncStorage.setItem(AUTH_KEY, JSON.stringify(u));
-    setUser(u);
+  async function login(email: string, password: string) {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
   }
 
-  async function register(name: string, email: string, _password: string) {
-    const u: User = {
-      id: Date.now().toString(),
-      name,
-      email,
-      role: 'Developer',
-      joinedAt: new Date().toISOString(),
-    };
-    await AsyncStorage.setItem(AUTH_KEY, JSON.stringify(u));
-    setUser(u);
+  async function register(name: string, email: string, password: string) {
+    const { error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: name } } });
+    if (error) throw error;
   }
 
   async function logout() {
-    await AsyncStorage.removeItem(AUTH_KEY);
-    setUser(null);
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
   }
 
-  async function updateUser(updates: Partial<User>) {
+  async function updateUser(updates: Partial<AppUser>) {
     if (!user) return;
-    const updated = { ...user, ...updates };
-    await AsyncStorage.setItem(AUTH_KEY, JSON.stringify(updated));
-    setUser(updated);
+    const { error } = await supabase.auth.updateUser({ data: updates });
+    if (error) throw error;
+  }
+
+  async function signInWithGoogle() {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: redirectUri, skipBrowserRedirect: false },
+    });
+    if (error) throw error;
+  }
+
+  async function signInWithGithub() {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'github',
+      options: { redirectTo: redirectUri, skipBrowserRedirect: false },
+    });
+    if (error) throw error;
   }
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout, updateUser, signInWithGoogle, signInWithGithub }}>
       {children}
     </AuthContext.Provider>
   );

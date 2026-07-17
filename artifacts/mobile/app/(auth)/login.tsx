@@ -21,7 +21,7 @@ import * as Haptics from 'expo-haptics';
 export default function LoginScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { login } = useAuth();
+  const { login, signInWithGoogle, signInWithGithub } = useAuth();
 
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
@@ -90,11 +90,11 @@ export default function LoginScreen() {
 
           {/* Social buttons */}
           <Animated.View entering={FadeInDown.delay(80).duration(500)} style={styles.socialRow}>
-            <Pressable onPress={() => {}} style={styles.socialBtn}>
+            <Pressable onPress={() => { setLoading(true); signInWithGithub().catch(() => setLoading(false)); }} style={styles.socialBtn}>
               <Feather name="github" size={18} color="#fff" />
               <Text style={styles.socialLabel}>GitHub</Text>
             </Pressable>
-            <Pressable onPress={() => {}} style={styles.socialBtn}>
+            <Pressable onPress={() => { setLoading(true); signInWithGoogle().catch(() => setLoading(false)); }} style={styles.socialBtn}>
               <Feather name="globe" size={18} color="#fff" />
               <Text style={styles.socialLabel}>Google</Text>
             </Pressable>
