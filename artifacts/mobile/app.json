@@ -14,9 +14,11 @@
       "backgroundColor": "#05050A"
     },
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "bundleIdentifier": "com.devosoftware.devos"
     },
     "android": {
+      "package": "com.devosoftware.devos",
       "backgroundColor": "#05050A"
     },
     "web": {
@@ -24,10 +26,7 @@
     },
     "plugins": [
       [
-        "expo-router",
-        {
-          "origin": "https://replit.com/"
-        }
+        "expo-router"
       ],
       "expo-font",
       "expo-web-browser"
@@ -35,6 +34,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "16e4fcde-e43a-4e0b-a75d-85daee6838d1"
+      }
+    },
+    "owner": "omargomaa451"
   }
 }
