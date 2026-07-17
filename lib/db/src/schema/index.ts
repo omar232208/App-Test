@@ -146,6 +146,7 @@ export const notificationsTable = pgTable("notifications", {
 export const communityPostsTable = pgTable("community_posts", {
   id: text("id").primaryKey(),
   userId: text("user_id").notNull(),
+  authorName: text("author_name").default("Anonymous").notNull(),
   title: text("title").notNull(),
   content: text("content").notNull(),
   tags: text("tags").array().default([]).notNull(),

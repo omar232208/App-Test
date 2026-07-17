@@ -1,3 +1,18 @@
+-- RPC functions for community likes counter
+CREATE OR REPLACE FUNCTION increment_post_likes(post_id text)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
+BEGIN
+  UPDATE community_posts SET likes = likes + 1 WHERE id = post_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION decrement_post_likes(post_id text)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
+BEGIN
+  UPDATE community_posts SET likes = GREATEST(0, likes - 1) WHERE id = post_id;
+END;
+$$;
+
 -- Drop existing policies first (safe for re-runs)
 DO $$ DECLARE
   pol record;

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -16,6 +17,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
 import { useColors } from '@/hooks/useColors';
+import { supabase } from '@/lib/supabase';
 import * as Haptics from 'expo-haptics';
 
 export default function LoginScreen() {
@@ -153,7 +155,21 @@ export default function LoginScreen() {
 
           {/* Forgot password */}
           <Animated.View entering={FadeInDown.delay(230).duration(500)} style={styles.forgotRow}>
-            <Pressable onPress={() => {}} hitSlop={8}>
+            <Pressable onPress={async () => {
+              if (!email.trim()) {
+                setError('Enter your email address first');
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+                return;
+              }
+              try {
+                await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: 'com.devosoftware.devos://reset-password' });
+                Alert.alert('Reset Link Sent', 'Check your email for a password reset link.');
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              } catch {
+                setError('Failed to send reset email. Try again.');
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+              }
+            }} hitSlop={8}>
               <Text style={styles.forgotText}>Forgot password?</Text>
             </Pressable>
           </Animated.View>

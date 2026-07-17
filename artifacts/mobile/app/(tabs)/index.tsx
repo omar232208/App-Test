@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Alert,
   Dimensions,
   Platform,
   Pressable,
@@ -192,7 +193,7 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { projects, notes, bookmarks, savedImages, folders } = useData();
-  const { unreadCount } = useActivity();
+  const { unreadCount, notifications } = useActivity();
   const { agents } = useAgents();
   const [refreshing, setRefreshing] = useState(false);
 
@@ -222,7 +223,15 @@ export default function HomeScreen() {
           <View style={[styles.heroOrb1, { backgroundColor: '#6366F118' }]} />
           <View style={[styles.heroOrb2, { backgroundColor: '#8B5CF612' }]} />
           <View style={styles.heroTopBar}>
-            <Pressable onPress={() => {}} style={[styles.iconBtn, { backgroundColor: '#ffffff0D', borderColor: '#ffffff15' }]}>
+            <Pressable onPress={() => {
+              const unread = notifications.filter(n => !n.read);
+              if (unread.length > 0) {
+                const lines = unread.slice(0, 5).map(n => `• ${n.title}`).join('\n');
+                Alert.alert(`${unread.length} Notification${unread.length > 1 ? 's' : ''}`, lines || 'No unread notifications');
+              } else {
+                Alert.alert('Notifications', 'No unread notifications');
+              }
+            }} style={[styles.iconBtn, { backgroundColor: '#ffffff0D', borderColor: '#ffffff15' }]}>
               <Feather name="bell" size={17} color="#ffffffCC" />
               {unreadCount > 0 && (
                 <View style={[styles.notifDot, { backgroundColor: '#EF4444', width: 18, height: 18, borderRadius: 9, top: -5, right: -5, alignItems: 'center', justifyContent: 'center' }]}>

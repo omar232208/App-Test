@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -16,12 +17,13 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
 import { useColors } from '@/hooks/useColors';
+import { supabase } from '@/lib/supabase';
 import * as Haptics from 'expo-haptics';
 
 export default function RegisterScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { register } = useAuth();
+  useAuth();
 
   const [name, setName]         = useState('');
   const [email, setEmail]       = useState('');
@@ -47,11 +49,24 @@ export default function RegisterScreen() {
     setError('');
     setLoading(true);
     try {
-      await register(name.trim(), email.trim(), password);
+      const { data } = await supabase.auth.signUp({
+        email: email.trim(), password,
+        options: { data: { full_name: name.trim() } },
+      });
+      if (data?.user?.identities?.length === 0) {
+        Alert.alert('Account exists', 'This email is already registered. Please sign in.');
+        setLoading(false);
+        return;
+      }
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.replace('/(tabs)');
-    } catch {
-      setError('Registration failed. Please try again.');
+      if (data?.session) {
+        router.replace('/(tabs)');
+      } else {
+        Alert.alert('Check your email', 'We sent a confirmation link. Please check your inbox.');
+        router.replace('/(auth)/login');
+      }
+    } catch (e: any) {
+      setError(e?.message || 'Registration failed. Please try again.');
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
     setLoading(false);

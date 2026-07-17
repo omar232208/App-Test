@@ -25,7 +25,7 @@ const PRIORITY_COLORS: Record<Priority, string> = { low: '#22C55E', medium: '#F5
 
 function CreateModal({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const colors = useColors();
-  const { addProject } = useData();
+  const { addProject, addFolder } = useData();
   const [name, setName] = useState('');
   const [desc, setDesc] = useState('');
   const [color, setColor] = useState(PROJECT_COLORS[0]);
@@ -35,6 +35,9 @@ function CreateModal({ visible, onClose }: { visible: boolean; onClose: () => vo
     if (!name.trim()) return;
     addProject({ name: name.trim(), description: desc.trim(), status: 'active', color, icon: 'folder', progress: 0 });
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    if (name.trim()) {
+      addFolder({ name: name.trim() + ' (Project)', color, icon: 'folder' });
+    }
     setName(''); setDesc(''); setColor(PROJECT_COLORS[0]);
     onClose();
   }

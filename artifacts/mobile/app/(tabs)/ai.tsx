@@ -29,12 +29,23 @@ const SUGGESTIONS = [
   { icon: 'git-branch', text: 'Explain Git rebase vs merge' },
 ];
 
-function getAIResponse(msg: string): string {
+async function getAIResponse(msg: string): Promise<string> {
+  const apiUrl = process.env.EXPO_PUBLIC_AI_API_URL;
+  if (apiUrl) {
+    try {
+      const res = await fetch(apiUrl, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg, model: 'devos-ai' }),
+      });
+      const data = await res.json();
+      if (data.response) return data.response;
+    } catch { /* fall through to mock */ }
+  }
   const m = msg.toLowerCase();
   if (m.includes('async') || m.includes('await') || m.includes('promise'))
     return "**async/await** is syntactic sugar over Promises:\n\n```javascript\nasync function getUsers() {\n  const res = await fetch('/api/users');\n  const data = await res.json();\n  return data;\n}\n```\nKey: `async` marks async function, `await` pauses until Promise resolves. Always use try/catch.";
   if (m.includes('rest') || m.includes('api') || m.includes('generate') || m.includes('endpoint'))
-    return "Here's a clean auth REST API:\n\n```typescript\nrouter.post('/register', async (req, res) => {\n  const hashed = await bcrypt.hash(req.body.password, 12);\n  const user = await User.create({ ...req.body, password: hashed });\n  const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!);\n  res.status(201).json({ user, token });\n});\n```";
+    return "Here's a clean auth REST API:\n\n```typescript\nrouter.post('/register', async (req, res) => {\n  const hashed = await bcrypt.hash(req.body.password, 12);\n  const user = await User.create({ ...req.body, password: hashed });\n  const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!);\n  res.status(201).json({ user, token });\n```";
   if (m.includes('optimize') || m.includes('performance') || m.includes('react'))
     return "**React Performance** — Top strategies:\n• `React.memo` to prevent unnecessary re-renders\n• `useMemo`/`useCallback` for stable references\n• `React.lazy` for code splitting\n• FlashList/FlatList instead of ScrollView\n• Avoid inline functions in JSX";
   if (m.includes('sql') || m.includes('database') || m.includes('duplicate') || m.includes('query'))
@@ -101,18 +112,17 @@ export default function AIScreen() {
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
   const botPad = Platform.OS === 'web' ? 34 : insets.bottom;
 
-  function send(text: string) {
+  async function send(text: string) {
     const t = text.trim();
     if (!t || typing) return;
     setInput('');
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     addAIMessage({ role: 'user', content: t });
     setTyping(true);
-    setTimeout(() => {
-      addAIMessage({ role: 'assistant', content: getAIResponse(t) });
-      setTyping(false);
-      setTimeout(() => flatRef.current?.scrollToEnd({ animated: true }), 100);
-    }, 900 + Math.random() * 600);
+    const reply = await getAIResponse(t);
+    addAIMessage({ role: 'assistant', content: reply });
+    setTyping(false);
+    setTimeout(() => flatRef.current?.scrollToEnd({ animated: true }), 100);
   }
 
   const isEmpty = aiMessages.length === 0;

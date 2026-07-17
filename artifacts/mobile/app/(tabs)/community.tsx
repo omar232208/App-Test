@@ -62,7 +62,7 @@ export default function CommunityScreen() {
     if (!newTitle.trim() || !user) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     await supabase.from('community_posts').insert({
-      id: uid(), user_id: user.id, title: newTitle.trim(), content: newContent.trim(), tags: [], pinned: false,
+      id: uid(), user_id: user.id, author_name: user.name, title: newTitle.trim(), content: newContent.trim(), tags: [], pinned: false,
     });
     setNewTitle(''); setNewContent(''); setShowModal(false);
     await loadPosts();
