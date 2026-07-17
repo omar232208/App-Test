@@ -53,7 +53,7 @@ export default function CommunityScreen() {
 
   const loadPosts = useCallback(async () => {
     const { data } = await supabase.from('community_posts').select('*').order('created_at', { ascending: false }).limit(50);
-    if (data) setPosts(data as Post[]);
+    setPosts((data ?? []) as Post[]);
   }, []);
 
   useEffect(() => { loadPosts(); }, []);

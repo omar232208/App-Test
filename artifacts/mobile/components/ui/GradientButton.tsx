@@ -28,6 +28,7 @@ export function GradientButton({
   }));
 
   function handlePressIn() {
+    if (disabled) return;
     scale.value = withSpring(0.96, { damping: 15, stiffness: 300 });
   }
 

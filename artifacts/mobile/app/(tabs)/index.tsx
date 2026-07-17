@@ -192,7 +192,7 @@ export default function HomeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
-  const { projects, notes, bookmarks, savedImages, folders } = useData();
+  const { projects, notes, bookmarks, savedImages, folders, reloadAll } = useData();
   const { unreadCount, notifications } = useActivity();
   const { agents } = useAgents();
   const [refreshing, setRefreshing] = useState(false);
@@ -217,7 +217,7 @@ export default function HomeScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: botPad + 110 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); setTimeout(() => setRefreshing(false), 700); }} tintColor={colors.primary} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await reloadAll(); setRefreshing(false); }} tintColor={colors.primary} />}
       >
         <LinearGradient colors={['#08081A', '#0D0D26', '#05050A']} style={[styles.hero, { paddingTop: topPad + 16 }]}>
           <View style={[styles.heroOrb1, { backgroundColor: '#6366F118' }]} />

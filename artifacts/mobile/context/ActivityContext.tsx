@@ -47,12 +47,14 @@ export function ActivityProvider({ children }: { children: React.ReactNode }) {
 
   const load = useCallback(async () => {
     if (!user) { setActivities([]); setNotifications([]); return; }
-    const [aRes, nRes] = await Promise.all([
-      supabase.from('activity_log').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(50),
-      supabase.from('notifications').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(50),
-    ]);
-    if (aRes.data) setActivities(aRes.data.map(a => ({ id: a.id, type: a.type, description: a.description, entityType: a.entity_type, entityId: a.entity_id, metadata: a.metadata, createdAt: a.created_at })));
-    if (nRes.data) setNotifications(nRes.data.map(n => ({ id: n.id, title: n.title, body: n.body, type: n.type, priority: n.priority, read: n.read, actionUrl: n.action_url, metadata: n.metadata, createdAt: n.created_at })));
+    try {
+      const [aRes, nRes] = await Promise.all([
+        supabase.from('activity_log').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(50),
+        supabase.from('notifications').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(50),
+      ]);
+      if (aRes.data) setActivities(aRes.data.map(a => ({ id: a.id, type: a.type, description: a.description, entityType: a.entity_type, entityId: a.entity_id, metadata: a.metadata, createdAt: a.created_at })));
+      if (nRes.data) setNotifications(nRes.data.map(n => ({ id: n.id, title: n.title, body: n.body, type: n.type, priority: n.priority, read: n.read, actionUrl: n.action_url, metadata: n.metadata, createdAt: n.created_at })));
+    } catch { /* ignore */ }
   }, [user]);
 
   useEffect(() => { if (user) load(); else { setActivities([]); setNotifications([]); } }, [user]);

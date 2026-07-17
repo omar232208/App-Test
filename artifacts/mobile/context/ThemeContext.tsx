@@ -3,7 +3,7 @@
  * Exports the raw ThemeContext for low-level consumption and the ThemeProvider wrapper.
  */
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useColorScheme } from 'react-native';
+import { useColorScheme, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type ThemeMode = 'dark' | 'light' | 'system';
@@ -60,7 +60,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       ? (systemScheme === 'light' ? 'light' : 'dark')
       : settings.theme;
 
-  if (!loaded) return null;
+  if (!loaded) return <View style={{ flex: 1, backgroundColor: '#08081A' }} />;
 
   return (
     <ThemeContext.Provider value={{

@@ -526,10 +526,12 @@ function PhotosSection() {
       allowsMultipleSelection: true,
     });
     if (!result.canceled) {
+      let idx = savedImages.length;
       for (const asset of result.assets) {
+        idx++;
         addImage({
           uri: asset.uri,
-          name: asset.fileName ?? `Photo ${savedImages.length + 1}`,
+          name: asset.fileName ?? `Photo ${idx}`,
           note: '',
         });
       }

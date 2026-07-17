@@ -119,8 +119,10 @@ export default function AIScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     addAIMessage({ role: 'user', content: t });
     setTyping(true);
-    const reply = await getAIResponse(t);
-    addAIMessage({ role: 'assistant', content: reply });
+    try {
+      const reply = await getAIResponse(t);
+      addAIMessage({ role: 'assistant', content: reply });
+    } catch { /* ignore */ }
     setTyping(false);
     setTimeout(() => flatRef.current?.scrollToEnd({ animated: true }), 100);
   }

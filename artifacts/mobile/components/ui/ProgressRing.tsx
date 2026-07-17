@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useId } from 'react';
 import { View } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import Animated, { useAnimatedProps, useSharedValue, withTiming } from 'react-native-reanimated';
@@ -7,7 +7,7 @@ import { useColors } from '@/hooks/useColors';
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 interface ProgressRingProps {
-  progress: number; // 0-100
+  progress: number;
   size?: number;
   strokeWidth?: number;
   color?: string;
@@ -15,6 +15,7 @@ interface ProgressRingProps {
 
 export function ProgressRing({ progress, size = 80, strokeWidth = 6, color }: ProgressRingProps) {
   const colors = useColors();
+  const gradientId = useId();
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const animatedProgress = useSharedValue(0);
@@ -31,12 +32,11 @@ export function ProgressRing({ progress, size = 80, strokeWidth = 6, color }: Pr
     <View style={{ width: size, height: size }}>
       <Svg width={size} height={size} style={{ transform: [{ rotate: '-90deg' }] }}>
         <Defs>
-          <LinearGradient id="ring-gradient" x1="0" y1="0" x2="1" y2="0">
+          <LinearGradient id={gradientId} x1="0" y1="0" x2="1" y2="0">
             <Stop offset="0" stopColor={color ?? colors.primary} />
             <Stop offset="1" stopColor={color ?? colors.accent} />
           </LinearGradient>
         </Defs>
-        {/* Track */}
         <Circle
           cx={size / 2}
           cy={size / 2}
@@ -45,12 +45,11 @@ export function ProgressRing({ progress, size = 80, strokeWidth = 6, color }: Pr
           strokeWidth={strokeWidth}
           fill="none"
         />
-        {/* Progress */}
         <AnimatedCircle
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="url(#ring-gradient)"
+          stroke={`url(#${gradientId})`}
           strokeWidth={strokeWidth}
           fill="none"
           strokeDasharray={circumference}

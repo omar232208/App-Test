@@ -20,6 +20,7 @@ import { useColors } from '@/hooks/useColors';
 import { useAuth } from '@/context/AuthContext';
 import { useData } from '@/context/DataContext';
 import { useActivity } from '@/context/ActivityContext';
+import * as Linking from 'expo-linking';
 import { useTheme, ThemeMode } from '@/context/ThemeContext';
 import { supabase } from '@/lib/supabase';
 import * as Haptics from 'expo-haptics';
@@ -155,10 +156,12 @@ function ChangePasswordModal({ visible, onClose }: { visible: boolean; onClose: 
   const [old, setOld] = useState('');
   const [newPw, setNewPw] = useState('');
   const [confirm, setConfirm] = useState('');
-  function doChange() {
+  async function doChange() {
     if (!old || !newPw || !confirm) { Alert.alert('Error', 'Fill all fields'); return; }
     if (newPw !== confirm) { Alert.alert('Error', 'Passwords do not match'); return; }
     if (newPw.length < 6) { Alert.alert('Error', 'Password must be at least 6 characters'); return; }
+    const { error } = await supabase.auth.updateUser({ password: newPw });
+    if (error) { Alert.alert('Error', error.message); return; }
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     Alert.alert('Success', 'Password changed!');
     setOld(''); setNewPw(''); setConfirm(''); onClose();
@@ -358,7 +361,7 @@ export default function ProfileScreen() {
             <SettingRow icon="info"        label="Version"     value="2.0.0 (Build 2)" delay={620} />
             <SettingRow icon="star"        label="Rate DevOS"  onPress={() => Alert.alert('Thanks!', 'We appreciate your support.')} iconColor="#F59E0B" delay={640} />
             <SettingRow icon="help-circle" label="Help & Support" onPress={() => Alert.alert('Support', 'Email: support@devos.app')} iconColor="#3B82F6" delay={660} />
-            <SettingRow icon="file-text"   label="Privacy Policy" onPress={() => {}} delay={680} />
+            <SettingRow icon="file-text"   label="Privacy Policy" onPress={() => Linking.openURL('https://devos.app/privacy')} delay={680} />
           </Section>
 
           <Pressable

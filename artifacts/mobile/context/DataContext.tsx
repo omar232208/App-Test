@@ -53,6 +53,7 @@ export interface Bookmark {
 
 interface DataContextType {
   projects: Project[];
+  reloadAll: () => Promise<void>;
   addProject:    (p: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'tasks'>) => Promise<void>;
   updateProject: (id: string, u: Partial<Project>) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
@@ -104,63 +105,79 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   const loadProjects = useCallback(async () => {
     if (!user) { setProjects([]); return; }
-    const { data: pData } = await supabase.from('projects').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
-    const { data: tData } = await supabase.from('tasks').select('*').eq('user_id', user.id);
-    if (!pData) return;
-    const tasksMap: Record<string, Task[]> = {};
-    for (const t of tData || []) {
-      if (!tasksMap[t.project_id]) tasksMap[t.project_id] = [];
-      tasksMap[t.project_id].push({ id: t.id, projectId: t.project_id, title: t.title, status: t.status, priority: t.priority, dueDate: t.due_date, createdAt: t.created_at });
-    }
-    setProjects(pData.map(p => ({
-      id: p.id, name: p.name, description: p.description || '',
-      status: p.status, color: p.color, icon: p.icon,
-      progress: p.progress || 0, tasks: tasksMap[p.id] || [],
-      createdAt: p.created_at, updatedAt: p.updated_at,
-    })));
+    try {
+      const { data: pData } = await supabase.from('projects').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
+      const { data: tData } = await supabase.from('tasks').select('*').eq('user_id', user.id);
+      if (!pData) return;
+      const tasksMap: Record<string, Task[]> = {};
+      for (const t of tData || []) {
+        if (!tasksMap[t.project_id]) tasksMap[t.project_id] = [];
+        tasksMap[t.project_id].push({ id: t.id, projectId: t.project_id, title: t.title, status: t.status, priority: t.priority, dueDate: t.due_date, createdAt: t.created_at });
+      }
+      setProjects(pData.map(p => ({
+        id: p.id, name: p.name, description: p.description || '',
+        status: p.status, color: p.color, icon: p.icon,
+        progress: p.progress || 0, tasks: tasksMap[p.id] || [],
+        createdAt: p.created_at, updatedAt: p.updated_at,
+      })));
+    } catch { /* ignore */ }
   }, [user]);
 
   const loadNotes = useCallback(async () => {
     if (!user) { setNotes([]); return; }
-    const { data } = await supabase.from('notes').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
-    if (data) setNotes(data.map(n => ({ id: n.id, title: n.title, content: n.content || '', color: n.color, tags: n.tags || [], pinned: n.pinned, createdAt: n.created_at, updatedAt: n.updated_at })));
+    try {
+      const { data } = await supabase.from('notes').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
+      if (data) setNotes(data.map(n => ({ id: n.id, title: n.title, content: n.content || '', color: n.color, tags: n.tags || [], pinned: n.pinned, createdAt: n.created_at, updatedAt: n.updated_at })));
+    } catch { /* ignore */ }
   }, [user]);
 
   const loadAIMessages = useCallback(async () => {
     if (!user) { setAIMessages([]); return; }
-    const { data } = await supabase.from('ai_messages').select('*').eq('user_id', user.id).order('timestamp', { ascending: true });
-    if (data) setAIMessages(data.map(m => ({ id: m.id, role: m.role, content: m.content, timestamp: m.timestamp })));
+    try {
+      const { data } = await supabase.from('ai_messages').select('*').eq('user_id', user.id).order('timestamp', { ascending: true });
+      if (data) setAIMessages(data.map(m => ({ id: m.id, role: m.role, content: m.content, timestamp: m.timestamp })));
+    } catch { /* ignore */ }
   }, [user]);
 
   const loadFolders = useCallback(async () => {
     if (!user) { setFolders([]); return; }
-    const { data: fData } = await supabase.from('folders').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
-    if (!fData) return;
-    const { data: dData } = await supabase.from('folder_docs').select('*').eq('user_id', user.id);
-    const docsMap: Record<string, FolderDoc[]> = {};
-    for (const d of dData || []) {
-      if (!docsMap[d.folder_id]) docsMap[d.folder_id] = [];
-      docsMap[d.folder_id].push({ id: d.id, folderId: d.folder_id, title: d.title, content: d.content || '', createdAt: d.created_at, updatedAt: d.updated_at });
-    }
-    setFolders(fData.map(f => ({ id: f.id, name: f.name, color: f.color, icon: f.icon, docs: docsMap[f.id] || [], createdAt: f.created_at, updatedAt: f.updated_at })));
+    try {
+      const { data: fData } = await supabase.from('folders').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
+      if (!fData) return;
+      const { data: dData } = await supabase.from('folder_docs').select('*').eq('user_id', user.id);
+      const docsMap: Record<string, FolderDoc[]> = {};
+      for (const d of dData || []) {
+        if (!docsMap[d.folder_id]) docsMap[d.folder_id] = [];
+        docsMap[d.folder_id].push({ id: d.id, folderId: d.folder_id, title: d.title, content: d.content || '', createdAt: d.created_at, updatedAt: d.updated_at });
+      }
+      setFolders(fData.map(f => ({ id: f.id, name: f.name, color: f.color, icon: f.icon, docs: docsMap[f.id] || [], createdAt: f.created_at, updatedAt: f.updated_at })));
+    } catch { /* ignore */ }
   }, [user]);
 
   const loadImages = useCallback(async () => {
     if (!user) { setSavedImages([]); return; }
-    const { data } = await supabase.from('saved_images').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
-    if (data) setSavedImages(data.map(i => ({ id: i.id, uri: i.uri, name: i.caption, note: i.caption, createdAt: i.created_at })));
+    try {
+      const { data } = await supabase.from('saved_images').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
+      if (data) setSavedImages(data.map(i => ({ id: i.id, uri: i.uri, name: i.name || i.caption, note: i.caption || '', createdAt: i.created_at })));
+    } catch { /* ignore */ }
   }, [user]);
 
   const loadBookmarks = useCallback(async () => {
     if (!user) { setBookmarks([]); return; }
-    const { data } = await supabase.from('bookmarks').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
-    if (data) setBookmarks(data.map(b => ({ id: b.id, url: b.url, title: b.title, description: b.description || '', tags: [], pinned: false, createdAt: b.created_at })));
+    try {
+      const { data } = await supabase.from('bookmarks').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
+      if (data) setBookmarks(data.map(b => ({ id: b.id, url: b.url, title: b.title, description: b.description || '', tags: [], pinned: false, createdAt: b.created_at })));
+    } catch { /* ignore */ }
   }, [user]);
 
   useEffect(() => {
     if (user) { loadProjects(); loadNotes(); loadAIMessages(); loadFolders(); loadImages(); loadBookmarks(); }
     else { setProjects([]); setNotes([]); setAIMessages([]); setFolders([]); setSavedImages([]); setBookmarks([]); }
   }, [user]);
+
+  async function reloadAll() {
+    await Promise.all([loadProjects(), loadNotes(), loadAIMessages(), loadFolders(), loadImages(), loadBookmarks()]);
+  }
 
   async function addProject(p: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'tasks'>) {
     if (!user) return;
@@ -287,7 +304,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <DataContext.Provider value={{
-      projects, addProject, updateProject, deleteProject,
+      projects, reloadAll, addProject, updateProject, deleteProject,
       addTask, updateTask, deleteTask,
       notes, addNote, updateNote, deleteNote,
       aiMessages, addAIMessage, clearAIMessages,
