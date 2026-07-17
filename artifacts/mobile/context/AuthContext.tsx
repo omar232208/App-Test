@@ -2,9 +2,10 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import * as WebBrowser from 'expo-web-browser';
 import { supabase } from '@/lib/supabase';
 import type { Session, User } from '@supabase/supabase-js';
-import * as Linking from 'expo-linking';
 
 WebBrowser.maybeCompleteAuthSession();
+
+const AUTH_CALLBACK_URL = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/auth/v1/callback`;
 
 export interface AppUser {
   id: string;
@@ -79,10 +80,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function openOAuth(provider: 'google' | 'github') {
-    const redirectTo = Linking.createURL('/');
+    const redirectTo = `${AUTH_CALLBACK_URL}#`;
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo, skipBrowserRedirect: true },
+      options: { redirectTo, skipBrowserRedirect: false },
     });
     if (error) throw error;
     if (!data?.url) throw new Error('No OAuth URL returned');
@@ -90,15 +91,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (result.type === 'success') {
       const hash = result.url.split('#')[1];
       if (!hash) {
-        const hasCode = result.url.includes('code=');
-        if (hasCode) {
-          const params = new URLSearchParams(result.url.split('?')[1] || '');
-          const code = params.get('code');
-          if (code) {
-            await supabase.auth.exchangeCodeForSession(code);
-            return;
-          }
-        }
         throw new Error('OAuth failed - no tokens received');
       }
       const params = new URLSearchParams(hash);

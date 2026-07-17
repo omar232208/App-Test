@@ -59,6 +59,7 @@
     "@react-navigation/bottom-tabs": "^7.18.8",
     "@supabase/supabase-js": "^2.110.6",
     "expo-auth-session": "~7.0.11",
-    "expo-build-properties": "~1.0.10"
+    "expo-build-properties": "~1.0.10",
+    "pg": "^8.22.0"
   }
 }

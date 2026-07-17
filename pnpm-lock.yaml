@@ -198,6 +198,9 @@ importers:
       expo-build-properties:
         specifier: ~1.0.10
         version: 1.0.10(expo@54.0.36)
+      pg:
+        specifier: ^8.22.0
+        version: 8.22.0
     devDependencies:
       '@babel/core':
         specifier: ^7.25.2
