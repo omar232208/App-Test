@@ -84,20 +84,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) throw error;
   }
 
-  async function signInWithGoogle() {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: redirectUri, skipBrowserRedirect: false },
+  async function openOAuth(provider: 'google' | 'github') {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: redirectUri, skipBrowserRedirect: true },
     });
     if (error) throw error;
+    if (!data?.url) throw new Error('No OAuth URL returned');
+    const result = await WebBrowser.openAuthSessionAsync(data.url, redirectUri);
+    if (result.type === 'success') {
+      const params = new URLSearchParams(result.url.split('#')[1] || '');
+      const accessToken = params.get('access_token');
+      const refreshToken = params.get('refresh_token');
+      if (accessToken) {
+        await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken || '',
+        });
+      }
+    } else {
+      throw new Error('OAuth cancelled');
+    }
+  }
+
+  async function signInWithGoogle() {
+    await openOAuth('google');
   }
 
   async function signInWithGithub() {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'github',
-      options: { redirectTo: redirectUri, skipBrowserRedirect: false },
-    });
-    if (error) throw error;
+    await openOAuth('github');
   }
 
   return (
