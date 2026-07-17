@@ -18,7 +18,7 @@ export function Badge({ label, variant = 'default', style, size = 'sm' }: BadgeP
     default: { bg: colors.muted, text: colors.mutedForeground },
     primary: { bg: colors.secondary, text: colors.primary },
     success: { bg: '#16a34a22', text: colors.success },
-    warning: { bg: '#d97706222', text: colors.warning },
+    warning: { bg: '#d9770622', text: colors.warning },
     error: { bg: '#ef444422', text: colors.destructive },
     info: { bg: '#3b82f622', text: colors.info },
   };

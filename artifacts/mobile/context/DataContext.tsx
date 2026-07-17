@@ -182,7 +182,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   async function addTask(projectId: string, t: Omit<Task, 'id' | 'createdAt' | 'projectId'>) {
     if (!user) return;
-    await supabase.from('tasks').insert({ id: uid(), project_id: projectId, userId: user.id, title: t.title, status: t.status, priority: t.priority, due_date: t.dueDate || null });
+    await supabase.from('tasks').insert({ id: uid(), project_id: projectId, user_id: user.id, title: t.title, status: t.status, priority: t.priority, due_date: t.dueDate || null });
     await loadProjects();
   }
   async function updateTask(projectId: string, taskId: string, u: Partial<Task>) {
